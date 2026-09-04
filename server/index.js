@@ -1,3 +1,4 @@
+import crypto from "node:crypto";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -7,27 +8,35 @@ import express from "express";
 import multer from "multer";
 import {
   createTrip,
+  deletePhoto,
   normalizeCode,
   publicUrl,
   readTrip,
+  serializeTrip,
+  supabase,
   updateTrip,
-  uploadDir,
+  uploadBucket,
+  uploadPhoto,
+  uploadTmpDir,
 } from "./store.js";
 
-const root = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PORT = Number(process.env.PORT || 8787);
-const RENDER_DISK_MOUNT = process.env.RENDER_DISK_MOUNT_PATH || "";
 
+// Railway 磁盘挂载路径（存放预编译的前端 dist）
+const RAILWAY_DISK_MOUNT = process.env.RAILWAY_DISK_MOUNT_PATH || "";
+// 本地临时上传目录（multer 写入后立即上传到 Supabase Storage）
+const tmpUploadDir = path.join(__dirname, "..", ".uploads-tmp");
+fs.mkdirSync(tmpUploadDir, { recursive: true });
+
+// ─── Multer：先写本地 tmp，再异步上传 Supabase Storage ────────
 const storage = multer.diskStorage({
-  destination(req, _file, cb) {
-    const code = normalizeCode(req.params.code);
-    const dir = path.join(uploadDir, code);
-    fs.mkdirSync(dir, { recursive: true });
-    cb(null, dir);
+  destination(_req, _file, cb) {
+    cb(null, tmpUploadDir);
   },
   filename(_req, file, cb) {
     const ext = path.extname(file.originalname || "").toLowerCase() || ".jpg";
-    cb(null, `${Date.now()}-${Math.random().toString(16).slice(2)}${ext}`);
+    cb(null, `${Date.now()}-${crypto.randomUUID().slice(0, 8)}${ext}`);
   },
 });
 
@@ -46,9 +55,8 @@ const upload = multer({
 const app = express();
 app.use(cors());
 app.use(express.json({ limit: "2mb" }));
-app.use("/uploads", express.static(uploadDir));
 
-// ─── Multer 错误处理 ────────────────────────────────────
+// ─── Multer 错误处理 ─────────────────────────────────────────
 app.use((err, _req, res, next) => {
   if (err && err.name && err.name.startsWith("Multer")) {
     console.error("[multer error]", err.name, err.message);
@@ -61,6 +69,7 @@ app.use((err, _req, res, next) => {
   next();
 });
 
+// ─── 本地调试用局域网地址提示 ─────────────────────────────────
 function lanUrls() {
   try {
     const nets = os.networkInterfaces();
@@ -68,7 +77,7 @@ function lanUrls() {
     for (const list of Object.values(nets || {})) {
       for (const net of list || []) {
         if ((net.family === "IPv4" || net.family === 4) && !net.internal) {
-          urls.push(`http://${net.address}:5173`);
+          urls.push(`http://${net.address}:${PORT}`);
         }
       }
     }
@@ -78,31 +87,30 @@ function lanUrls() {
   }
 }
 
-function serialize(trip) {
-  return {
-    ...trip,
-    mapUrl: publicUrl(trip.mapPath),
-    coverImageUrl: publicUrl(trip.coverImagePath),
-    photos: (trip.photos || []).map((p) => ({
-      ...p,
-      url: publicUrl(p.path),
-    })),
-  };
-}
+// ─── API 路由 ────────────────────────────────────────────────
 
 app.get("/api/health", (_req, res) => {
-  res.json({ ok: true, lan: lanUrls() });
+  res.json({
+    ok: true,
+    supabase: !!supabase,
+    lan: lanUrls(),
+  });
 });
 
 app.post("/api/trips", async (req, res) => {
-  const trip = await createTrip(req.body?.title);
-  res.json(serialize(trip));
+  try {
+    const trip = await createTrip(req.body?.title);
+    res.json(trip);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 app.get("/api/trips/:code", (req, res) => {
-  const trip = readTrip(req.params.code);
-  if (!trip) return res.status(404).json({ error: "找不到这场旅行" });
-  res.json(serialize(trip));
+  readTrip(req.params.code).then((trip) => {
+    if (!trip) return res.status(404).json({ error: "找不到这场旅行" });
+    res.json(trip);
+  });
 });
 
 app.put("/api/trips/:code/meta", async (req, res) => {
@@ -114,16 +122,16 @@ app.put("/api/trips/:code/meta", async (req, res) => {
     if (typeof endDate === "string") t.endDate = endDate;
     if (tabLabels && typeof tabLabels === "object") {
       t.tabLabels = {
-        setup: String(tabLabels.setup ?? t.tabLabels?.setup ?? "行程").slice(0, 8),
-        album: String(tabLabels.album ?? t.tabLabels?.album ?? "画册").slice(0, 8),
-        money: String(tabLabels.money ?? t.tabLabels?.money ?? "账单").slice(0, 8),
+        setup:  String(tabLabels.setup  ?? t.tabLabels?.setup  ?? "行程").slice(0, 8),
+        album:  String(tabLabels.album  ?? t.tabLabels?.album  ?? "画册").slice(0, 8),
+        money:  String(tabLabels.money  ?? t.tabLabels?.money  ?? "账单").slice(0, 8),
         photos: String(tabLabels.photos ?? t.tabLabels?.photos ?? "相册").slice(0, 8),
       };
     }
     return t;
   });
   if (!trip) return res.status(404).json({ error: "找不到这场旅行" });
-  res.json(serialize(trip));
+  res.json(trip);
 });
 
 app.post("/api/trips/:code/people", async (req, res) => {
@@ -134,7 +142,7 @@ app.post("/api/trips/:code/people", async (req, res) => {
     return t;
   });
   if (!trip) return res.status(404).json({ error: "找不到这场旅行" });
-  res.json(serialize(trip));
+  res.json(trip);
 });
 
 app.delete("/api/trips/:code/people/:id", async (req, res) => {
@@ -148,7 +156,7 @@ app.delete("/api/trips/:code/people/:id", async (req, res) => {
     return t;
   });
   if (!trip) return res.status(404).json({ error: "找不到这场旅行" });
-  res.json(serialize(trip));
+  res.json(trip);
 });
 
 app.post("/api/trips/:code/itinerary", async (req, res) => {
@@ -167,7 +175,7 @@ app.post("/api/trips/:code/itinerary", async (req, res) => {
     return t;
   });
   if (!trip) return res.status(404).json({ error: "找不到这场旅行" });
-  res.json(serialize(trip));
+  res.json(trip);
 });
 
 app.put("/api/trips/:code/itinerary/:id", async (req, res) => {
@@ -177,16 +185,16 @@ app.put("/api/trips/:code/itinerary/:id", async (req, res) => {
         ? {
             ...item,
             title: String(req.body?.title ?? item.title).slice(0, 80),
-            note: String(req.body?.note ?? item.note).slice(0, 400),
-            hour: Number(req.body?.hour ?? item.hour),
-            date: String(req.body?.date ?? item.date),
+            note:  String(req.body?.note  ?? item.note).slice(0, 400),
+            hour:  Number(req.body?.hour ?? item.hour),
+            date:  String(req.body?.date ?? item.date),
           }
         : item,
     );
     return t;
   });
   if (!trip) return res.status(404).json({ error: "找不到这场旅行" });
-  res.json(serialize(trip));
+  res.json(trip);
 });
 
 app.delete("/api/trips/:code/itinerary/:id", async (req, res) => {
@@ -195,7 +203,7 @@ app.delete("/api/trips/:code/itinerary/:id", async (req, res) => {
     return t;
   });
   if (!trip) return res.status(404).json({ error: "找不到这场旅行" });
-  res.json(serialize(trip));
+  res.json(trip);
 });
 
 app.post("/api/trips/:code/expenses", async (req, res) => {
@@ -212,7 +220,7 @@ app.post("/api/trips/:code/expenses", async (req, res) => {
     return t;
   });
   if (!trip) return res.status(404).json({ error: "找不到这场旅行" });
-  res.json(serialize(trip));
+  res.json(trip);
 });
 
 app.put("/api/trips/:code/expenses/:id", async (req, res) => {
@@ -222,20 +230,18 @@ app.put("/api/trips/:code/expenses/:id", async (req, res) => {
         ? {
             ...e,
             category: String(req.body?.category ?? e.category),
-            date: String(req.body?.date ?? e.date),
-            note: String(req.body?.note ?? e.note).slice(0, 80),
-            amounts:
-              req.body?.amounts && typeof req.body.amounts === "object"
-                ? req.body.amounts
-                : e.amounts,
-            paidBy: String(req.body?.paidBy ?? e.paidBy ?? ""),
+            date:    String(req.body?.date    ?? e.date),
+            note:    String(req.body?.note    ?? e.note).slice(0, 80),
+            amounts: req.body?.amounts && typeof req.body.amounts === "object"
+              ? req.body.amounts : e.amounts,
+            paidBy:  String(req.body?.paidBy  ?? e.paidBy ?? ""),
           }
         : e,
     );
     return t;
   });
   if (!trip) return res.status(404).json({ error: "找不到这场旅行" });
-  res.json(serialize(trip));
+  res.json(trip);
 });
 
 app.delete("/api/trips/:code/expenses/:id", async (req, res) => {
@@ -244,83 +250,86 @@ app.delete("/api/trips/:code/expenses/:id", async (req, res) => {
     return t;
   });
   if (!trip) return res.status(404).json({ error: "找不到这场旅行" });
-  res.json(serialize(trip));
+  res.json(trip);
 });
 
-app.post("/api/trips/:code/map", upload.single("file"), async (req, res) => {
-  if (!req.file) return res.status(400).json({ error: "请选择地图图片" });
-  const rel = path.join(normalizeCode(req.params.code), req.file.filename);
-  const trip = await updateTrip(req.params.code, (t) => {
-    t.mapPath = rel;
-    return t;
-  });
-  if (!trip) return res.status(404).json({ error: "找不到这场旅行" });
-  res.json(serialize(trip));
-});
+// ─── 图片上传：本地 tmp → Supabase Storage ────────────────────
+async function handleImageUpload(req, res, fieldName) {
+  if (!req.file) return res.status(400).json({ error: `请选择${fieldName === "map" ? "地图" : "图片"}` });
+  const shareCode = normalizeCode(req.params.code);
 
-app.post("/api/trips/:code/cover", upload.single("file"), async (req, res) => {
-  console.log(`[cover] ${req.params.code} file=${req.file?.originalname} size=${req.file?.size} mime=${req.file?.mimetype}`);
-  if (!req.file) return res.status(400).json({ error: "请选择封面图" });
-  const rel = path.join(normalizeCode(req.params.code), req.file.filename);
-  const trip = await updateTrip(req.params.code, (t) => {
-    t.coverImagePath = rel;
-    return t;
-  });
-  if (!trip) return res.status(404).json({ error: "找不到这场旅行" });
-  res.json(serialize(trip));
-});
+  try {
+    // 读取本地临时文件，上传到 Supabase Storage
+    const fileBuffer = fs.readFileSync(req.file.path);
+    const publicUrl2 = await uploadPhoto(fileBuffer, req.file.originalname);
 
-app.post("/api/trips/:code/photos", upload.single("file"), async (req, res) => {
-  if (!req.file) return res.status(400).json({ error: "请选择照片" });
-  const rel = path.join(normalizeCode(req.params.code), req.file.filename);
-  const uploaderName = String(req.body?.uploaderName || "旅行者").slice(0, 24);
-  const caption = String(req.body?.caption || "").slice(0, 80);
-  const takenAt = Number(req.body?.takenAt) || Date.now();
-  const trip = await updateTrip(req.params.code, (t) => {
-    t.photos.unshift({
-      id: crypto.randomUUID(),
-      path: rel,
-      caption,
-      uploaderName,
-      takenAt,
-      createdAt: Date.now(),
+    // 清理本地 tmp
+    fs.unlinkSync(req.file.path);
+
+    const fieldMap = { map: "mapPath", cover: "coverImagePath", photos: undefined };
+    const trip = await updateTrip(shareCode, (t) => {
+      if (fieldName === "map")    t.mapPath = publicUrl2;
+      if (fieldName === "cover")  t.coverImagePath = publicUrl2;
+      if (fieldName === "photos") {
+        t.photos.unshift({
+          id: crypto.randomUUID(),
+          path: publicUrl2,
+          caption: String(req.body?.caption || "").slice(0, 80),
+          uploaderName: String(req.body?.uploaderName || "旅行者").slice(0, 24),
+          takenAt: Number(req.body?.takenAt) || Date.now(),
+          createdAt: Date.now(),
+        });
+      }
+      return t;
     });
-    return t;
-  });
-  if (!trip) return res.status(404).json({ error: "找不到这场旅行" });
-  res.json(serialize(trip));
-});
+
+    if (!trip) return res.status(404).json({ error: "找不到这场旅行" });
+    res.json(trip);
+  } catch (err) {
+    console.error(`[${fieldName} upload] error:`, err);
+    res.status(500).json({ error: err.message || "上传失败" });
+  }
+}
+
+app.post("/api/trips/:code/map", upload.single("file"),    (req, res) => handleImageUpload(req, res, "map"));
+app.post("/api/trips/:code/cover", upload.single("file"),  (req, res) => handleImageUpload(req, res, "cover"));
+app.post("/api/trips/:code/photos", upload.single("file"), (req, res) => handleImageUpload(req, res, "photos"));
 
 app.delete("/api/trips/:code/photos/:id", async (req, res) => {
-  const trip = await updateTrip(req.params.code, (t) => {
-    const photo = t.photos.find((p) => p.id === req.params.id);
-    if (photo?.path) {
-      const full = path.join(uploadDir, photo.path);
-      if (fs.existsSync(full)) fs.unlinkSync(full);
-    }
+  const trip = await readTrip(req.params.code);
+  if (!trip) return res.status(404).json({ error: "找不到这场旅行" });
+  const photo = trip.photos.find((p) => p.id === req.params.id);
+  if (photo?.path) {
+    await deletePhoto(photo.path);
+  }
+  const updated = await updateTrip(req.params.code, (t) => {
     t.photos = t.photos.filter((p) => p.id !== req.params.id);
     return t;
   });
-  if (!trip) return res.status(404).json({ error: "找不到这场旅行" });
-  res.json(serialize(trip));
+  res.json(updated);
 });
 
-app.use((err, _req, res, _next) => {
-  res.status(400).json({ error: err.message || "上传失败" });
-});
-
+// ─── 生产模式：服务前端静态文件 ──────────────────────────────
 if (process.env.NODE_ENV === "production") {
-  // Render 磁盘挂载在 RENDER_DISK_MOUNT_PATH，预编译的 dist 放那里
-  const dist = RENDER_DISK_MOUNT
-    ? path.join(RENDER_DISK_MOUNT, "dist")
-    : path.join(root, "dist");
-  app.use(express.static(dist));
-  app.get(/.*/, (_req, res) => {
-    res.sendFile(path.join(dist, "index.html"));
-  });
+  // Railway 磁盘挂载路径存放 dist；本地开发时放仓库根目录 dist/
+  const dist = RAILWAY_DISK_MOUNT
+    ? path.join(RAILWAY_DISK_MOUNT, "dist")
+    : path.join(__dirname, "..", "dist");
+  if (fs.existsSync(dist)) {
+    app.use(express.static(dist));
+    app.get(/.*/, (_req, res) => res.sendFile(path.join(dist, "index.html")));
+  } else {
+    console.warn(`[prod] dist not found at ${dist} — API only mode`);
+  }
 }
 
+// ─── 启动 ────────────────────────────────────────────────────
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`API http://127.0.0.1:${PORT}`);
-  for (const url of lanUrls()) console.log(`LAN  ${url}`);
+  if (supabase) {
+    console.log("Supabase Storage: enabled");
+  } else {
+    console.warn("Supabase: NOT connected (MOCK mode)");
+  }
+  for (const url of lanUrls()) console.log(`LAN  ${url}/`);
 });
