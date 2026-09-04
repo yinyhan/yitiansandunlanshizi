@@ -2,9 +2,15 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-const root = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
-export const dataDir = path.join(root, "data");
-export const uploadDir = path.join(root, "uploads");
+// 持久化目录：Render 用 DATA_DIR 环境变量挂载磁盘；本地开发回退到仓库内 data/uploads
+const dataDir = process.env.DATA_DIR
+  ? path.resolve(process.env.DATA_DIR, "data")
+  : path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "data");
+const uploadDir = process.env.DATA_DIR
+  ? path.resolve(process.env.DATA_DIR, "uploads")
+  : path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "uploads");
+
+export { dataDir, uploadDir };
 
 fs.mkdirSync(dataDir, { recursive: true });
 fs.mkdirSync(uploadDir, { recursive: true });

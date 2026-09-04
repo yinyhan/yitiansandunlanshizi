@@ -16,6 +16,7 @@ import {
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
 const PORT = Number(process.env.PORT || 8787);
+const RENDER_DISK_MOUNT = process.env.RENDER_DISK_MOUNT_PATH || "";
 
 const storage = multer.diskStorage({
   destination(req, _file, cb) {
@@ -309,7 +310,10 @@ app.use((err, _req, res, _next) => {
 });
 
 if (process.env.NODE_ENV === "production") {
-  const dist = path.join(root, "dist");
+  // Render 磁盘挂载在 RENDER_DISK_MOUNT_PATH，预编译的 dist 放那里
+  const dist = RENDER_DISK_MOUNT
+    ? path.join(RENDER_DISK_MOUNT, "dist")
+    : path.join(root, "dist");
   app.use(express.static(dist));
   app.get(/.*/, (_req, res) => {
     res.sendFile(path.join(dist, "index.html"));
