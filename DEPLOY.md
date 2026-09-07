@@ -1,13 +1,19 @@
-# 🚀 部署指南（Railway + Supabase）
+# 🚀 部署指南（Vercel + Supabase，永久免费）
 
 ## 架构概览
 
 ```
-浏览器 ──→ Railway (Node.js API + 前端静态文件)
+浏览器 ──→ Vercel（前端 React 静态站点）
               │
-              ├── 前端 API 调用 → 同一个 Railway 实例 (同进程)
-              └── 图片/数据存储  → Supabase PostgreSQL + Storage CDN
+              ├── API 调用 → Supabase Edge Functions (Deno)
+              │                  │
+              │                  ├── 数据 → Supabase PostgreSQL
+              │                  └── 图片直传 → Supabase Storage
+              │
+              └── 前端直传图片 → Supabase Storage CDN
 ```
+
+**零成本、零运维。**
 
 ---
 
@@ -23,133 +29,173 @@
 
 ### 1.2 获取连接信息
 
-项目建好后，进 **Project Settings → API**，记录这两个值：
+项目建好后，进 **Project Settings → API**，记录这三个值：
 
 - `SUPABASE_URL`（类似 `https://xxxxx.supabase.co`）
-- `SUPABASE_SERVICE_KEY`（`service_role` 那个，不是 `anon`）
-
-> ⚠️ `service_role` key 能绕过 RLS，本项目用于服务端写入，安全原因不放前端。
+- `SUPABASE_SERVICE_KEY`（`service_role` 那个，后端用，**保密**）
+- `SUPABASE_ANON_KEY`（`anon public` 那个，前端用，可公开）
 
 ### 1.3 初始化数据库表
 
-进 **SQL Editor**（左侧边栏），新建查询，粘贴 `schema.sql` 的全部内容，点击 **Run**。
+进 **SQL Editor**（左侧边栏），新建查询，分两次执行：
 
-执行成功后会看到：
+**第一次**：粘贴 `schema.sql` 的全部内容 → **Run**
+**第二次**：粘贴 `schema_v2.sql` 的全部内容 → **Run**
+
+执行成功后：
 - `trips` / `people` / `itinerary` / `expenses` / `photos` 五张表
-- Row Level Security 已开启
+- 所有表新增了 `owner_token` 列（单密码保护用）
 - `travel-photos` Storage bucket 已创建
 
 ### 1.4 设置 Storage 公开访问
 
 进 **Storage → travel-photos → Policies**，确认有以下策略（或新建）：
-- `public_upload_photos`：允许所有人读写
+
+```sql
+create policy "public_read_photos"
+  on storage.objects for select using (bucket_id = 'travel-photos');
+
+create policy "public_insert_photos"
+  on storage.objects for insert with check (bucket_id = 'travel-photos');
+
+create policy "public_update_photos"
+  on storage.objects for update using (bucket_id = 'travel-photos');
+
+create policy "public_delete_photos"
+  on storage.objects for delete using (bucket_id = 'travel-photos');
+```
+
+> 这样 bucket 里所有文件都能通过公开 URL 访问和上传。
 
 ---
 
-## 第二步：部署到 Railway（约 10 分钟）
+## 第二步：部署 Edge Functions（约 5 分钟）
 
-### 2.1 注册 Railway
+### 2.1 安装 Supabase CLI
 
-打开 [railway.app](https://railway.app) → 用 GitHub 登录
-Railway 每月送 **$5 免费额度**，足够本项目用很久。
+```bash
+# Mac
+brew install supabase/tap/supabase
 
-### 2.2 新建项目
+# 或用 npm
+npm i -g supabase
+```
 
-1. Dashboard → **New Project** → **Deploy from GitHub repo**
+### 2.2 登录
+
+```bash
+supabase login
+```
+
+### 2.3 链接项目
+
+```bash
+supabase link --project-ref xxxxx
+# 填你的项目 ID（在 Supabase Settings → General 找）
+```
+
+### 2.4 推送 Edge Function
+
+```bash
+supabase functions deploy api --no-verify-jwt
+```
+
+> `--no-verify-jwt` 是因为我们用 `x-owner-token` header 鉴权，不要 Supabase JWT。
+
+部署成功后，你会得到一个 URL，类似：
+```
+https://xxxxx.supabase.co/functions/v1/api
+```
+
+### 2.5 测试
+
+```bash
+curl https://xxxxx.supabase.co/functions/v1/api/health
+# 应该返回 {"ok":true,"supabase":true}
+```
+
+---
+
+## 第三步：部署前端到 Vercel（约 3 分钟）
+
+### 3.1 注册 Vercel
+
+打开 [vercel.com](https://vercel.com) → 用 GitHub 登录
+
+### 3.2 导入项目
+
+1. Dashboard → **Add New → Project**
 2. 选择 `yinyhan/yitiansandunlanshizi` 仓库
-3. Railway 会自动检测到 Node.js 项目
+3. Vercel 会自动识别为 Vite 项目
 
-### 2.3 配置构建命令
+### 3.3 配置环境变量
 
-Railway 自动检测可能不对，手动改一下：
+进项目 → **Settings → Environment Variables**，添加：
 
-进入服务 → **Settings**：
-- **Build Command**: `npm install && npm run build`
-- **Start Command**: `npm start`
-- **Root Directory**: 留空（从仓库根目录开始）
+| 变量名 | 值 |
+|--------|---|
+| `VITE_SUPABASE_URL` | `https://xxxxx.supabase.co` |
+| `VITE_SUPABASE_ANON_KEY` | `eyJhbGc...`（anon public） |
 
-### 2.4 添加环境变量
+**所有环境（Production / Preview / Development）都勾选。**
 
-进 **Variables**，点击 **Raw Editor**，粘贴以下内容（**替换成你的值**）：
+### 3.4 部署
 
+点 **Deploy** 按钮，等 1 分钟。成功后你会得到：
 ```
-SUPABASE_URL=https://xxxxx.supabase.co
-SUPABASE_SERVICE_KEY=eyJhbGc...（service_role key）
-NODE_ENV=production
-PORT=8080
+https://travel-plan-xxx.vercel.app
 ```
-
-> Railway 会自动把 `SUPABASE_URL` 注入给构建时的前端，所以前端也能读到。
-
-### 2.5 添加磁盘（存放前端 dist）
-
-1. Railway 服务页 → **Disks** → **Add Disk**
-2. Name: `travel-data`
-3. Size: **512 MB**（免费额度够用）
-4. Mount Path: `/var/data`
-
-Railway 会自动设置 `RAILWAY_DISK_MOUNT_PATH` 环境变量。
-
-### 2.6 开启自动部署
-
-进入项目 → **Settings → Deploy**：
-- 开启 **Auto Deploy**
-- 以后每次 push 到 GitHub main 分支，Railway 自动重新部署
-
-### 2.7 等待部署完成
-
-约 2-3 分钟后，Railway 会告诉你访问地址，如：
-`https://travel-plan.up.railway.app`
 
 ---
 
-## 第三步：验证
+## 第四步：验证
 
-打开 Railway 给你的 URL，测试：
+打开 Vercel 给你的 URL，测试：
+
 1. ✅ 创建一场新旅行
-2. ✅ 上传封面图
+   - 此时会**自动生成 32 位 owner token** 存 localStorage
+2. ✅ 上传封面图 / 相册
+   - 图片走前端直传 Supabase Storage
 3. ✅ 添加行程、账单
-4. ✅ 重启 Railway 服务（Settings → Restart），数据是否还在
+4. ✅ 关闭浏览器再打开，**同 shareCode 应该自动验证通过**
 
-如果数据还在，说明部署成功！
+### 跨设备/换浏览器
+
+由于 token 只存在本地，**换浏览器或换电脑需要重新输入 token**。
+
+如需跨设备访问：浏览器 DevTools → `localStorage` → 找到 `owner_token:XXXXXX` 的值，复制到新设备。
 
 ---
 
 ## 常见问题
 
-### Q: Railway 免费版会休眠吗？
-Railway Starter 计划在 **500 小时/月** 后会休眠，但有磁盘的情况下休眠后重启数据还在。建议配合 GitHub Actions 定期 ping 防止休眠。
+### Q: 图片上传失败？
+检查 Storage → travel-photos 的 Policies 是否齐全（见 1.4 节）。
 
-### Q: 怎么防止 Railway 休眠？
-可以用 GitHub Actions 每 25 分钟 ping 一次服务：
-```yaml
-# .github/workflows/ping.yml
-name: Ping Railway
-on:
-  schedule:
-    - cron: "*/25 * * * *"
-jobs:
-  ping:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Ping
-        run: curl -sf https://你的服务地址.up.railway.app/api/health || true
+### Q: 创建旅行时 401 错误？
+Edge Function 没部署成功或环境变量没设。检查：
+```bash
+supabase functions env set SUPABASE_URL=... SUPABASE_SERVICE_KEY=... --project-ref xxxxx
+supabase functions deploy api --no-verify-jwt
 ```
 
-### Q: 图片上传失败？
-检查 Supabase Storage 的 **Policies** 是否允许公开上传，参考 1.4 节。
+### Q: 数据被乱改？
+查 `owner_token` 字段。**默认策略下，Edge Function 通过 service_role 鉴权**，所以 Edge Function 代码本身安全就没问题。如果怀疑 token 泄露：
+1. Supabase SQL Editor 里 `select * from trips` 找到你的 trip
+2. 改 `owner_token` 为新值
+3. 前端 localStorage 里同步更新
 
-### Q: 想用自己的域名？
-Railway → 服务 → **Settings → Networking → Custom Domain**，按提示配置 CNAME。
+### Q: Edge Function 部署失败？
+确保 `supabase/config.toml` 在仓库根目录，且 `supabase functions deploy api` 能找到 `supabase/functions/api/index.ts`。
 
 ---
 
-## 费用预估
+## 费用
 
-| 服务 | 月费用 | 说明 |
-|------|--------|------|
-| Railway | $0–$5 | Starter 免费额度 $5/月 |
-| Supabase | $0 | 免费版 500MB 数据库 + 1GB 存储 |
-| 域名（可选）| ~$10/年 | 如需要 |
+| 服务 | 月费用 |
+|------|--------|
+| Vercel | **$0**（100GB 流量/月） |
+| Supabase | **$0**（500MB 数据库 + 1GB Storage + 50万次函数调用） |
+| 域名（可选）| ~$10/年 |
 
-实际每月 **几乎为 0**。
+**永久免费。**
