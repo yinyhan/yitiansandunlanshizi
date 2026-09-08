@@ -563,11 +563,17 @@ function Setup({ trip, mutate, myName, onSetMyName }: {
     pendingRef.current = { title: trip.title, city: trip.city, startDate: trip.startDate, endDate: trip.endDate };
   }
 
-  function saveMeta() {
-    const body = pendingRef.current ? { ...pendingRef.current } : null;
-    console.log("[saveMeta] body:", body);
-    if (!body) return;
-    console.log("[saveMeta] calling API...");
+  // 从 DOM 直接读取当前值，绕过 React state 闭包问题
+  function saveMeta(refName: string) {
+    const input = document.querySelector<HTMLInputElement>(
+      refName === "title" ? 'input[placeholder="京都春日"]' :
+      refName === "city" ? 'input[placeholder="京都"]' : 'input[placeholder]'
+    );
+    if (!input) return;
+    const title = document.querySelector<HTMLInputElement>('input[placeholder="京都春日"]')?.value || "";
+    const city = document.querySelector<HTMLInputElement>('input[placeholder="京都"]')?.value || "";
+    const body = { ...(pendingRef.current || {}), title, city };
+    console.log("[saveMeta] saving:", body);
     mutate(() => api.saveMeta(trip.shareCode, body))
       .then(() => console.log("[saveMeta] success"))
       .catch((e) => console.error("[saveMeta] error:", e));
@@ -607,11 +613,11 @@ function Setup({ trip, mutate, myName, onSetMyName }: {
             <div className="combined-grid-3">
               <div className="field">
                 <span className="field-label">标题</span>
-                <input value={title} onChange={(e) => { setTitle(e.target.value); pendingRef.current.title = e.target.value; }} onBlur={saveMeta} placeholder="京都春日" />
+                <input value={title} onChange={(e) => { setTitle(e.target.value); if (pendingRef.current) pendingRef.current.title = e.target.value; }} onBlur={() => saveMeta("title")} placeholder="京都春日" />
               </div>
               <div className="field">
                 <span className="field-label">目的地</span>
-                <input value={city} onChange={(e) => { setCity(e.target.value); pendingRef.current.city = e.target.value; }} onBlur={saveMeta} placeholder="京都" />
+                <input value={city} onChange={(e) => { setCity(e.target.value); if (pendingRef.current) pendingRef.current.city = e.target.value; }} onBlur={() => saveMeta("city")} placeholder="京都" />
               </div>
               <div className="field">
                 <span className="field-label">我的名字</span>
