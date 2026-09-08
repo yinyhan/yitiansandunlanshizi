@@ -565,8 +565,12 @@ function Setup({ trip, mutate, myName, onSetMyName }: {
 
   function saveMeta() {
     const body = pendingRef.current ? { ...pendingRef.current } : null;
+    console.log("[saveMeta] body:", body);
     if (!body) return;
-    mutate(() => api.saveMeta(trip.shareCode, body));
+    console.log("[saveMeta] calling API...");
+    mutate(() => api.saveMeta(trip.shareCode, body))
+      .then(() => console.log("[saveMeta] success"))
+      .catch((e) => console.error("[saveMeta] error:", e));
   }
 
   return (
