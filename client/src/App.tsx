@@ -111,9 +111,10 @@ interface DatePickerProps {
   value: string;       // YYYY-MM-DD or ""
   onChange: (v: string) => void;
   label?: string;
+  onBlur?: () => void;
 }
 
-function DatePicker({ value, onChange, label }: DatePickerProps) {
+function DatePicker({ value, onChange, label, onBlur }: DatePickerProps) {
   const [open, setOpen] = useState(false);
   const today = new Date();
   const initial = value ? new Date(value + "T00:00:00") : today;
@@ -191,8 +192,10 @@ function DatePicker({ value, onChange, label }: DatePickerProps) {
     <>
       <div
         ref={triggerRef}
+        tabIndex={0}
         className={`dp-trigger ${value ? "" : "is-empty"}`}
         onClick={openPicker}
+        onBlur={onBlur}
       >
         <span>{display}</span>
         {value ? (
@@ -555,26 +558,32 @@ function Setup({ trip, mutate, myName, onSetMyName }: {
     setStart(trip.startDate); setEnd(trip.endDate);
   }, [trip.shareCode]);
 
-  // 自动保存行程信息：当用户离开输入框时保存
-  // 不依赖 useEffect，用 onBlur 事件触发，稳如泰山
-  // lazy init：只在首次渲染时设置 ref 值
-  const pendingRef = useRef<{title:string;city:string;startDate:string;endDate:string}|null>(null);
-  if (pendingRef.current === null) {
-    pendingRef.current = { title: trip.title, city: trip.city, startDate: trip.startDate, endDate: trip.endDate };
+  // 用 useRef 存 lastSaved，永不在 remount 时重置
+  const lastSaved = useRef<Record<string, string>>({});
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // 通用保存函数（由 onChange debounce 和 onBlur 调用）
+  function doSaveMeta() {
+    const body: Record<string, string> = {};
+    if (title !== lastSaved.current.title) body.title = title;
+    if (city !== lastSaved.current.city) body.city = city;
+    if (startDate !== lastSaved.current.startDate) body.startDate = startDate;
+    if (endDate !== lastSaved.current.endDate) body.endDate = endDate;
+    if (Object.keys(body).length === 0) return; // 没有变化
+    if (saveTimer.current) { clearTimeout(saveTimer.current); saveTimer.current = null; }
+    mutate(() => api.saveMeta(trip.shareCode, body)).then(() => {
+      Object.assign(lastSaved.current, body);
+    });
   }
 
-  // blur 时从 DOM 直接读值，完全绕过 React state/closure 问题
-  function saveMeta() {
-    const titleEl = document.querySelector<HTMLInputElement>('input[placeholder="京都春日"]');
-    const cityEl = document.querySelector<HTMLInputElement>('input[placeholder="京都"]');
-    const body: Record<string, string> = {};
-    if (titleEl?.value) body.title = titleEl.value;
-    if (cityEl?.value) body.city = cityEl.value;
-    console.log("[saveMeta] saving:", body);
-    mutate(() => api.saveMeta(trip.shareCode, body))
-      .then(() => console.log("[saveMeta] success"))
-      .catch((e) => console.error("[saveMeta] error:", e));
-  }
+  // onChange 触发 600ms debounce 保存
+  function onTitleChange(v: string) { setTitle(v); if (saveTimer.current) clearTimeout(saveTimer.current); saveTimer.current = setTimeout(doSaveMeta, 600); }
+  function onCityChange(v: string) { setCity(v); if (saveTimer.current) clearTimeout(saveTimer.current); saveTimer.current = setTimeout(doSaveMeta, 600); }
+  function onStartChange(v: string) { setStart(v); if (saveTimer.current) clearTimeout(saveTimer.current); saveTimer.current = setTimeout(doSaveMeta, 600); }
+  function onEndChange(v: string) { setEnd(v); if (saveTimer.current) clearTimeout(saveTimer.current); saveTimer.current = setTimeout(doSaveMeta, 600); }
+
+  // onBlur 立即保存（防用户直接刷新页面）
+  function onBlurSave() { if (saveTimer.current) { clearTimeout(saveTimer.current); saveTimer.current = null; } doSaveMeta(); }
 
   return (
     <section className="panel">
@@ -610,11 +619,11 @@ function Setup({ trip, mutate, myName, onSetMyName }: {
             <div className="combined-grid-3">
               <div className="field">
                 <span className="field-label">标题</span>
-                <input value={title} onChange={(e) => { setTitle(e.target.value); if (pendingRef.current) pendingRef.current.title = e.target.value; }} onBlur={saveMeta} placeholder="京都春日" />
+                <input value={title} onChange={(e) => onTitleChange(e.target.value)} onBlur={onBlurSave} placeholder="京都春日" />
               </div>
               <div className="field">
                 <span className="field-label">目的地</span>
-                <input value={city} onChange={(e) => { setCity(e.target.value); if (pendingRef.current) pendingRef.current.city = e.target.value; }} onBlur={saveMeta} placeholder="京都" />
+                <input value={city} onChange={(e) => onCityChange(e.target.value)} onBlur={onBlurSave} placeholder="京都" />
               </div>
               <div className="field">
                 <span className="field-label">我的名字</span>
@@ -628,11 +637,11 @@ function Setup({ trip, mutate, myName, onSetMyName }: {
             <div className="combined-grid">
               <div className="field">
                 <span className="field-label">出发</span>
-                <DatePicker value={startDate} onChange={(d) => { setStart(d); pendingRef.current.startDate = d; }} label="选出发日期" onBlur={saveMeta} />
+                <DatePicker value={startDate} onChange={(d) => onStartChange(d)} label="选出发日期" onBlur={onBlurSave} />
               </div>
               <div className="field">
                 <span className="field-label">返程</span>
-                <DatePicker value={endDate} onChange={setEnd} label="选返程日期" />
+                <DatePicker value={endDate} onChange={(d) => onEndChange(d)} label="选返程日期" onBlur={onBlurSave} />
               </div>
             </div>
             <div style={{ marginTop: 10 }}>
