@@ -561,24 +561,35 @@ function Setup({ trip, mutate, myName, onSetMyName }: {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   if (lastSaved.current === null) {
     lastSaved.current = { title: trip.title, city: trip.city, startDate: trip.startDate, endDate: trip.endDate };
+    console.log("[auto] init lastSaved:", JSON.stringify(lastSaved.current));
   }
   useEffect(() => {
+    console.log("[auto] effect fired:", { title, city, now: Date.now() });
+    console.log("[auto] lastSaved:", JSON.stringify(lastSaved.current));
     if (title === lastSaved.current!.title &&
         city === lastSaved.current!.city &&
         startDate === lastSaved.current!.startDate &&
-        endDate === lastSaved.current!.endDate) return;
+        endDate === lastSaved.current!.endDate) {
+      console.log("[auto] skipped (same as lastSaved)");
+      return;
+    }
     if (timerRef.current) clearTimeout(timerRef.current);
+    console.log("[auto] scheduling save...");
     timerRef.current = setTimeout(async () => {
+      console.log("[auto] timer fired, calling API...");
       if (title === lastSaved.current!.title &&
           city === lastSaved.current!.city &&
           startDate === lastSaved.current!.startDate &&
-          endDate === lastSaved.current!.endDate) return;
+          endDate === lastSaved.current!.endDate) {
+        console.log("[auto] skipped (stale)");
+        return;
+      }
       lastSaved.current = { title, city, startDate, endDate };
       try {
         const result = await mutate(() => api.saveMeta(trip.shareCode, { title, city, startDate, endDate }));
-        console.log("[auto-save] 成功! city=", result?.city);
+        console.log("[auto] 成功! result.city=", result?.city);
       } catch (e) {
-        console.error("[auto-save] 失败:", e);
+        console.error("[auto] 失败:", e);
       }
     }, 800);
   }, [title, city, startDate, endDate]);
