@@ -10,11 +10,16 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.115.0";
 import { randomUUID } from "https://deno.land/std@0.224.0/uuid/mod.ts";
 
-const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
-const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_KEY");
+// Supabase Edge Functions 禁止以 SUPABASE_ 为前缀命名 secrets，
+// 所以我们用自己的名字：SB_URL / SB_SERVICE_KEY
+// 用已有的 secrets：SB_URL 和 SERVICE_ROLE_KEY
+const SUPABASE_URL = Deno.env.get("SB_URL");
+const SUPABASE_SERVICE_KEY = Deno.env.get("SERVICE_ROLE_KEY");
 
 if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
-  console.error("[api] 缺少 SUPABASE_URL 或 SUPABASE_SERVICE_KEY");
+  throw new Error(
+    "[api] 缺少环境变量！请在 Supabase Dashboard → Functions → Secrets 设置 SB_URL 和 SERVICE_ROLE_KEY"
+  );
 }
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
@@ -115,10 +120,18 @@ Deno.serve(async (req) => {
     });
   }
 
-  const url = new URL(req.url);
-  // 路径去掉 /functions/v1/api 前缀
-  let path = url.pathname.replace(/^\/functions\/v1\/api/, "");
+  // req.url 在 Deno Edge 可能是绝对 URL 或相对路径，两种都处理
+  let pathname: string;
+  try {
+    const u = new URL(req.url);
+    pathname = u.pathname;
+  } catch {
+    pathname = req.url; // fallback：已经是 /functions/v1/api/xxx
+  }
+  let path = pathname.replace(/^(\/functions\/v1)?\/api/, "");
   if (!path) path = "/";
+
+  console.log("[api debug] method=" + req.method + " url=" + req.url + " pathname=" + pathname + " path=" + path);
 
   try {
     // ─── 健康检查 ──────────────────────────────────────────
@@ -142,7 +155,8 @@ Deno.serve(async (req) => {
         owner_token: token,
       }).select().single();
       if (error) throw error;
-      return jsonResponse(readTripFull(shareCode).then((t) => t || {}));
+      const t = await readTripFull(shareCode);
+      return jsonResponse(t || {});
     }
 
     // ─── 读取旅行 ──────────────────────────────────────────

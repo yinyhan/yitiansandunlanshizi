@@ -549,6 +549,17 @@ function Setup({ trip, mutate, myName, onSetMyName }: {
     setStart(trip.startDate); setEnd(trip.endDate);
   }, [trip.title, trip.city, trip.startDate, trip.endDate]);
 
+  // 自动 debounce 保存行程信息（500ms），无需手动点保存按钮
+  const initMetaRef = useRef(false);
+  useEffect(() => {
+    if (!initMetaRef.current) { initMetaRef.current = true; return; }
+    const t = setTimeout(() => {
+      mutate(() => api.saveMeta(trip.shareCode, { title, city, startDate, endDate }))
+        .catch(() => { /* 错误已在 mutate 内捕获并显示 */ });
+    }, 500);
+    return () => clearTimeout(t);
+  }, [title, city, startDate, endDate]);
+
   return (
     <section className="panel">
       <div className="combined-card">
@@ -665,9 +676,9 @@ function Setup({ trip, mutate, myName, onSetMyName }: {
             </div>
           </div>
 
-          <button className="btn btn-primary btn-block" style={{ marginTop: 12 }}
-            onClick={() => mutate(() => api.saveMeta(trip.shareCode, { title, city, startDate, endDate }))}>
-            保存行程信息
+          <button className="btn btn-primary btn-block" style={{ marginTop: 12 }} disabled
+            title="标题、目的地、日期会自动保存，无需手动点击">
+            行程信息已自动保存
           </button>
         </div>
       </div>

@@ -46,8 +46,15 @@ async function parse<T = any>(res: Response): Promise<T> {
 
 function headers(code: string, extra: Record<string, string> = {}): Record<string, string> {
   const token = getOwnerToken(code);
-  return {
+  const base: Record<string, string> = {
     "Content-Type": "application/json",
+  };
+  if (SUPABASE_ANON_KEY) {
+    base["Authorization"] = `Bearer ${SUPABASE_ANON_KEY}`;
+  }
+  base["apikey"] = SUPABASE_ANON_KEY || "";
+  return {
+    ...base,
     ...(token ? { "x-owner-token": token } : {}),
     ...extra,
   };
@@ -88,10 +95,18 @@ export const api = {
     // 创建 trip 时还没有 share_code，先用一个临时 key 把 token 存起来
     // 实际接口由后端返回 share_code，前端用 code 作 key 重存 token
     const token = generateToken();
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+      "x-owner-token": token,
+    };
+    if (SUPABASE_ANON_KEY) {
+      headers["Authorization"] = `Bearer ${SUPABASE_ANON_KEY}`;
+      headers["apikey"] = SUPABASE_ANON_KEY;
+    }
     const data = await parse<any>(
       await fetch(`${API_BASE}/trips`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", "x-owner-token": token },
+        headers,
         body: JSON.stringify({ title }),
       }),
     );
