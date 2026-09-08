@@ -555,26 +555,12 @@ function Setup({ trip, mutate, myName, onSetMyName }: {
     setStart(trip.startDate); setEnd(trip.endDate);
   }, [trip.shareCode]);
 
-  // 自动保存行程信息（立即，有防重入保护）
-  // lastSaved 用 lazy init 确保只在挂载时设置一次
-  const lastSaved = useRef<{title:string;city:string;startDate:string;endDate:string}|null>(null);
-  const savingRef = useRef(false);
-  if (lastSaved.current === null) {
-    lastSaved.current = { title: trip.title, city: trip.city, startDate: trip.startDate, endDate: trip.endDate };
+  // 自动保存行程信息：当用户离开输入框时保存
+  // 不依赖 useEffect，用 onBlur 事件触发，稳如泰山
+  const pendingRef = useRef({ title: trip.title, city: trip.city, startDate: trip.startDate, endDate: trip.endDate });
+  function saveMeta() {
+    mutate(() => api.saveMeta(trip.shareCode, pendingRef.current));
   }
-  useEffect(() => {
-    if (title === lastSaved.current!.title &&
-        city === lastSaved.current!.city &&
-        startDate === lastSaved.current!.startDate &&
-        endDate === lastSaved.current!.endDate) return;
-    if (savingRef.current) return; // 防止重入
-    savingRef.current = true;
-    console.log("[auto] 立即保存:", { title, city });
-    mutate(() => api.saveMeta(trip.shareCode, { title, city, startDate, endDate }))
-      .then(() => { lastSaved.current = { title, city, startDate, endDate }; console.log("[auto] 保存成功"); })
-      .catch((e) => { console.error("[auto] 保存失败:", e); })
-      .finally(() => { savingRef.current = false; });
-  }, [title, city, startDate, endDate]);
 
   return (
     <section className="panel">
@@ -610,11 +596,11 @@ function Setup({ trip, mutate, myName, onSetMyName }: {
             <div className="combined-grid-3">
               <div className="field">
                 <span className="field-label">标题</span>
-                <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="京都春日" />
+                <input value={title} onChange={(e) => { setTitle(e.target.value); pendingRef.current.title = e.target.value; }} onBlur={saveMeta} placeholder="京都春日" />
               </div>
               <div className="field">
                 <span className="field-label">目的地</span>
-                <input value={city} onChange={(e) => setCity(e.target.value)} placeholder="京都" />
+                <input value={city} onChange={(e) => { setCity(e.target.value); pendingRef.current.city = e.target.value; }} onBlur={saveMeta} placeholder="京都" />
               </div>
               <div className="field">
                 <span className="field-label">我的名字</span>
@@ -628,7 +614,7 @@ function Setup({ trip, mutate, myName, onSetMyName }: {
             <div className="combined-grid">
               <div className="field">
                 <span className="field-label">出发</span>
-                <DatePicker value={startDate} onChange={setStart} label="选出发日期" />
+                <DatePicker value={startDate} onChange={(d) => { setStart(d); pendingRef.current.startDate = d; }} label="选出发日期" onBlur={saveMeta} />
               </div>
               <div className="field">
                 <span className="field-label">返程</span>
