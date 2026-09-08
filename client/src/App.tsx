@@ -559,10 +559,13 @@ function Setup({ trip, mutate, myName, onSetMyName }: {
         city === lastSaved.current.city &&
         startDate === lastSaved.current.startDate &&
         endDate === lastSaved.current.endDate) return;
+    console.log("[auto-save] scheduling save:", { title, city, startDate, endDate, prev: lastSaved.current });
     if (timerRef.current) clearTimeout(timerRef.current);
     timerRef.current = setTimeout(async () => {
+      console.log("[auto-save] calling API with:", { title, city, startDate, endDate });
       lastSaved.current = { title, city, startDate, endDate };
       await mutate(() => api.saveMeta(trip.shareCode, { title, city, startDate, endDate }));
+      console.log("[auto-save] done");
     }, 500);
   }, [title, city, startDate, endDate]);
 
