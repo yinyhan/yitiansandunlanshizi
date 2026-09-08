@@ -544,13 +544,18 @@ function Setup({ trip, mutate, myName, onSetMyName }: {
   const [endDate, setEnd] = useState(trip.endDate);
   const [name, setName] = useState("");
 
+  // 同步只在挂载/分享码变化时执行一次。后续不再覆盖本地编辑状态，
+  // 避免父组件的 4 秒轮询把用户输入覆盖回后端旧值。
+  // 保存成功由 mutate 内 setTrip 触发，本组件因 props 更新自动重渲染，新值会展示。
+  const initSyncRef = useRef(false);
   useEffect(() => {
+    if (initSyncRef.current) return;
+    initSyncRef.current = true;
     setTitle(trip.title); setCity(trip.city);
     setStart(trip.startDate); setEnd(trip.endDate);
-  }, [trip.title, trip.city, trip.startDate, trip.endDate]);
+  }, [trip.shareCode]);
 
   // 自动 debounce 保存行程信息（500ms），无需手动点保存按钮
-  // 用 ref 追踪"最近一次成功保存的值"，避免父组件 auto-sync 触发的重复保存
   const lastSaved = useRef({ title: trip.title, city: trip.city, startDate: trip.startDate, endDate: trip.endDate });
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
@@ -559,13 +564,10 @@ function Setup({ trip, mutate, myName, onSetMyName }: {
         city === lastSaved.current.city &&
         startDate === lastSaved.current.startDate &&
         endDate === lastSaved.current.endDate) return;
-    console.log("[auto-save] scheduling save:", { title, city, startDate, endDate, prev: lastSaved.current });
     if (timerRef.current) clearTimeout(timerRef.current);
-    timerRef.current = setTimeout(async () => {
-      console.log("[auto-save] calling API with:", { title, city, startDate, endDate });
+    timerRef.current = setTimeout(() => {
       lastSaved.current = { title, city, startDate, endDate };
-      await mutate(() => api.saveMeta(trip.shareCode, { title, city, startDate, endDate }));
-      console.log("[auto-save] done");
+      mutate(() => api.saveMeta(trip.shareCode, { title, city, startDate, endDate }));
     }, 500);
   }, [title, city, startDate, endDate]);
 
