@@ -550,14 +550,20 @@ function Setup({ trip, mutate, myName, onSetMyName }: {
   }, [trip.title, trip.city, trip.startDate, trip.endDate]);
 
   // 自动 debounce 保存行程信息（500ms），无需手动点保存按钮
-  const initMetaRef = useRef(false);
+  // 用 ref 追踪"最近一次成功保存的值"，避免父组件 auto-sync 触发的重复保存
+  const lastSaved = useRef({ title: trip.title, city: trip.city, startDate: trip.startDate, endDate: trip.endDate });
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
-    if (!initMetaRef.current) { initMetaRef.current = true; return; }
-    const t = setTimeout(() => {
-      mutate(() => api.saveMeta(trip.shareCode, { title, city, startDate, endDate }))
-        .catch(() => { /* 错误已在 mutate 内捕获并显示 */ });
+    // 跳过首次渲染（初始值等于服务端值，无需保存）
+    if (title === lastSaved.current.title &&
+        city === lastSaved.current.city &&
+        startDate === lastSaved.current.startDate &&
+        endDate === lastSaved.current.endDate) return;
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(async () => {
+      lastSaved.current = { title, city, startDate, endDate };
+      await mutate(() => api.saveMeta(trip.shareCode, { title, city, startDate, endDate }));
     }, 500);
-    return () => clearTimeout(t);
   }, [title, city, startDate, endDate]);
 
   return (
