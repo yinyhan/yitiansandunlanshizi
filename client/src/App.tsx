@@ -555,43 +555,25 @@ function Setup({ trip, mutate, myName, onSetMyName }: {
     setStart(trip.startDate); setEnd(trip.endDate);
   }, [trip.shareCode]);
 
-  // 自动保存行程信息（800ms debounce），无需手动点保存按钮
+  // 自动保存行程信息（立即，有防重入保护）
   // lastSaved 用 lazy init 确保只在挂载时设置一次
   const lastSaved = useRef<{title:string;city:string;startDate:string;endDate:string}|null>(null);
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const savingRef = useRef(false);
   if (lastSaved.current === null) {
     lastSaved.current = { title: trip.title, city: trip.city, startDate: trip.startDate, endDate: trip.endDate };
-    console.log("[auto] init lastSaved:", JSON.stringify(lastSaved.current));
   }
   useEffect(() => {
-    console.log("[auto] effect fired:", { title, city, now: Date.now() });
-    console.log("[auto] lastSaved:", JSON.stringify(lastSaved.current));
     if (title === lastSaved.current!.title &&
         city === lastSaved.current!.city &&
         startDate === lastSaved.current!.startDate &&
-        endDate === lastSaved.current!.endDate) {
-      console.log("[auto] skipped (same as lastSaved)");
-      return;
-    }
-    if (timerRef.current) clearTimeout(timerRef.current);
-    console.log("[auto] scheduling save...");
-    timerRef.current = setTimeout(async () => {
-      console.log("[auto] timer fired, calling API...");
-      if (title === lastSaved.current!.title &&
-          city === lastSaved.current!.city &&
-          startDate === lastSaved.current!.startDate &&
-          endDate === lastSaved.current!.endDate) {
-        console.log("[auto] skipped (stale)");
-        return;
-      }
-      lastSaved.current = { title, city, startDate, endDate };
-      try {
-        const result = await mutate(() => api.saveMeta(trip.shareCode, { title, city, startDate, endDate }));
-        console.log("[auto] 成功! result.city=", result?.city);
-      } catch (e) {
-        console.error("[auto] 失败:", e);
-      }
-    }, 800);
+        endDate === lastSaved.current!.endDate) return;
+    if (savingRef.current) return; // 防止重入
+    savingRef.current = true;
+    console.log("[auto] 立即保存:", { title, city });
+    mutate(() => api.saveMeta(trip.shareCode, { title, city, startDate, endDate }))
+      .then(() => { lastSaved.current = { title, city, startDate, endDate }; console.log("[auto] 保存成功"); })
+      .catch((e) => { console.error("[auto] 保存失败:", e); })
+      .finally(() => { savingRef.current = false; });
   }, [title, city, startDate, endDate]);
 
   return (
