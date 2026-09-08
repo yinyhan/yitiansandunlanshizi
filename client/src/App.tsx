@@ -557,9 +557,16 @@ function Setup({ trip, mutate, myName, onSetMyName }: {
 
   // 自动保存行程信息：当用户离开输入框时保存
   // 不依赖 useEffect，用 onBlur 事件触发，稳如泰山
-  const pendingRef = useRef({ title: trip.title, city: trip.city, startDate: trip.startDate, endDate: trip.endDate });
+  // lazy init：只在首次渲染时设置 ref 值
+  const pendingRef = useRef<{title:string;city:string;startDate:string;endDate:string}|null>(null);
+  if (pendingRef.current === null) {
+    pendingRef.current = { title: trip.title, city: trip.city, startDate: trip.startDate, endDate: trip.endDate };
+  }
+
   function saveMeta() {
-    mutate(() => api.saveMeta(trip.shareCode, pendingRef.current));
+    const body = pendingRef.current ? { ...pendingRef.current } : null;
+    if (!body) return;
+    mutate(() => api.saveMeta(trip.shareCode, body));
   }
 
   return (
