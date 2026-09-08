@@ -555,19 +555,24 @@ function Setup({ trip, mutate, myName, onSetMyName }: {
     setStart(trip.startDate); setEnd(trip.endDate);
   }, [trip.shareCode]);
 
-  // 自动 debounce 保存行程信息（500ms），无需手动点保存按钮
+  // 自动保存行程信息（500ms debounce），无需手动点保存按钮
   const lastSaved = useRef({ title: trip.title, city: trip.city, startDate: trip.startDate, endDate: trip.endDate });
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
-    // 跳过首次渲染（初始值等于服务端值，无需保存）
+    console.log("[auto-save] effect triggered:", { title, city, startDate, endDate });
     if (title === lastSaved.current.title &&
         city === lastSaved.current.city &&
         startDate === lastSaved.current.startDate &&
         endDate === lastSaved.current.endDate) return;
     if (timerRef.current) clearTimeout(timerRef.current);
-    timerRef.current = setTimeout(() => {
+    timerRef.current = setTimeout(async () => {
+      if (title === lastSaved.current.title &&
+          city === lastSaved.current.city &&
+          startDate === lastSaved.current.startDate &&
+          endDate === lastSaved.current.endDate) return;
       lastSaved.current = { title, city, startDate, endDate };
-      mutate(() => api.saveMeta(trip.shareCode, { title, city, startDate, endDate }));
+      const result = await mutate(() => api.saveMeta(trip.shareCode, { title, city, startDate, endDate }));
+      console.log("[auto-save] result:", result?.city);
     }, 500);
   }, [title, city, startDate, endDate]);
 
