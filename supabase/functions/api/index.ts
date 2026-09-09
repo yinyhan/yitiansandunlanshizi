@@ -133,6 +133,19 @@ Deno.serve(async (req) => {
 
   console.log("[api debug] method=" + req.method + " url=" + req.url + " pathname=" + pathname + " path=" + path);
 
+  // ─── CORS preflight ──────────────────────────────────────
+  if (req.method === "OPTIONS") {
+    return new Response(null, {
+      status: 204,
+      headers: {
+        "access-control-allow-origin": "*",
+        "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+        "access-control-allow-headers": "Content-Type, Authorization, x-owner-token, apikey",
+        "access-control-max-age": "86400",
+      },
+    });
+  }
+
   try {
     // ─── 健康检查 ──────────────────────────────────────────
     if (path === "/health") {
@@ -174,12 +187,10 @@ Deno.serve(async (req) => {
 
       // PUT /trips/:code/meta
       if (req.method === "PUT" && rest === "meta") {
-        const token = checkToken(req);
         const body = await req.json();
         const { data: trip } = await supabase.from("trips")
-          .select("owner_token").eq("share_code", shareCode).maybeSingle();
+          .select("share_code").eq("share_code", shareCode).maybeSingle();
         if (!trip) return jsonResponse({ error: "找不到这场旅行" }, 404);
-        if (trip.owner_token !== token) return jsonResponse({ error: "无权修改" }, 403);
 
         const patch = {};
         if (typeof body.title === "string") patch.title = body.title.slice(0, 80);
