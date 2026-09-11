@@ -410,7 +410,7 @@ function TripApp({ code }: { code: string }) {
           <div className="masthead-city">{trip.city || "尚未落点"}</div>
           <div className="masthead-title">{trip.title || "未命名旅程"}</div>
           <div className="masthead-meta">
-            <span>{trip.startDate && trip.endDate ? `${trip.startDate} → ${trip.endDate}` : "日期未定"}</span>
+            <span>{trip.startDate ? `${trip.startDate}${trip.endDate ? ' → ' + trip.endDate : ''}` : "日期未定"}</span>
             <span>{trip.people.length ? trip.people.map((p) => p.name).join(" · ") : "还没有同行人"}</span>
           </div>
           <div className="masthead-share">
