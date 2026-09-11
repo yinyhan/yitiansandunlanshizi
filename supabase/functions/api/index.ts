@@ -27,15 +27,11 @@ const BUCKET = "travel-photos";
 
 // ─── 通用工具 ────────────────────────────────────────────────
 
+// jsonResponse 的 CORS headers 会被 OPTIONS 处理器覆盖，这里只设 content-type
 function jsonResponse(body, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: {
-      "content-type": "application/json",
-      "access-control-allow-origin": "*",
-      "access-control-allow-headers": "content-type, x-owner-token",
-      "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
-    },
+    headers: { "content-type": "application/json" },
   });
 }
 
@@ -108,14 +104,16 @@ async function readTripFull(shareCode) {
 // ─── 路由分发 ────────────────────────────────────────────────
 
 Deno.serve(async (req) => {
-  // CORS preflight
+  // CORS preflight —— 必须在最前面，覆盖任何路由逻辑
+  // 注意：headers 必须包含浏览器实际请求的所有 header（Authorization、apikey 等）
   if (req.method === "OPTIONS") {
     return new Response(null, {
       status: 204,
       headers: {
         "access-control-allow-origin": "*",
-        "access-control-allow-headers": "content-type, x-owner-token",
         "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+        "access-control-allow-headers": "Content-Type, Authorization, x-owner-token, apikey, x-client-info, x-supabase-api-version",
+        "access-control-max-age": "86400",
       },
     });
   }
@@ -132,19 +130,6 @@ Deno.serve(async (req) => {
   if (!path) path = "/";
 
   console.log("[api debug] method=" + req.method + " url=" + req.url + " pathname=" + pathname + " path=" + path);
-
-  // ─── CORS preflight ──────────────────────────────────────
-  if (req.method === "OPTIONS") {
-    return new Response(null, {
-      status: 204,
-      headers: {
-        "access-control-allow-origin": "*",
-        "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
-        "access-control-allow-headers": "Content-Type, Authorization, x-owner-token, apikey",
-        "access-control-max-age": "86400",
-      },
-    });
-  }
 
   try {
     // ─── 健康检查 ──────────────────────────────────────────
@@ -208,16 +193,14 @@ Deno.serve(async (req) => {
 
       // ─── people ─────────────────────────────────────────
       if (req.method === "POST" && rest === "people") {
-        const token = checkToken(req);
         const { name } = await req.json();
         if (!name?.trim()) return jsonResponse({ error: "请填写姓名" }, 400);
         const { data: trip } = await supabase.from("trips")
-          .select("id, owner_token").eq("share_code", shareCode).maybeSingle();
+          .select("id").eq("share_code", shareCode).maybeSingle();
         if (!trip) return jsonResponse({ error: "找不到这场旅行" }, 404);
-        if (trip.owner_token !== token) return jsonResponse({ error: "无权修改" }, 403);
 
         const { error } = await supabase.from("people").insert({
-          trip_id: trip.id, name: name.trim().slice(0, 24), owner_token: token,
+          trip_id: trip.id, name: name.trim().slice(0, 24),
         });
         if (error) throw error;
         return jsonResponse(await readTripFull(shareCode));
@@ -225,12 +208,7 @@ Deno.serve(async (req) => {
 
       const personMatch = rest.match(/^people\/([0-9a-f-]+)$/);
       if (personMatch && req.method === "DELETE") {
-        const token = checkToken(req);
         const personId = personMatch[1];
-        const { data: person } = await supabase.from("people")
-          .select("owner_token").eq("id", personId).maybeSingle();
-        if (!person) return jsonResponse({ error: "找不到这个人" }, 404);
-        if (person.owner_token !== token) return jsonResponse({ error: "无权修改" }, 403);
         const { error } = await supabase.from("people").delete().eq("id", personId);
         if (error) throw error;
         return jsonResponse(await readTripFull(shareCode));
@@ -238,13 +216,11 @@ Deno.serve(async (req) => {
 
       // ─── itinerary ──────────────────────────────────────
       if (req.method === "POST" && rest === "itinerary") {
-        const token = checkToken(req);
         const { date, hour, title, note } = await req.json();
         if (!date || hour == null) return jsonResponse({ error: "缺少日期或时间" }, 400);
         const { data: trip } = await supabase.from("trips")
-          .select("id, owner_token").eq("share_code", shareCode).maybeSingle();
+          .select("id").eq("share_code", shareCode).maybeSingle();
         if (!trip) return jsonResponse({ error: "找不到这场旅行" }, 404);
-        if (trip.owner_token !== token) return jsonResponse({ error: "无权修改" }, 403);
 
         const { error } = await supabase.from("itinerary").insert({
           trip_id: trip.id,
@@ -252,7 +228,6 @@ Deno.serve(async (req) => {
           hour: Number(hour),
           title: String(title || "").slice(0, 80),
           note: String(note || "").slice(0, 400),
-          owner_token: token,
         });
         if (error) throw error;
         return jsonResponse(await readTripFull(shareCode));
@@ -261,11 +236,9 @@ Deno.serve(async (req) => {
       const itineraryMatch = rest.match(/^itinerary\/([0-9a-f-]+)$/);
       if (itineraryMatch) {
         const id = itineraryMatch[1];
-        const token = checkToken(req);
         const { data: item } = await supabase.from("itinerary")
-          .select("owner_token").eq("id", id).maybeSingle();
+          .select("id").eq("id", id).maybeSingle();
         if (!item) return jsonResponse({ error: "找不到这个行程" }, 404);
-        if (item.owner_token !== token) return jsonResponse({ error: "无权修改" }, 403);
 
         if (req.method === "PUT") {
           const body = await req.json();
@@ -285,12 +258,10 @@ Deno.serve(async (req) => {
 
       // ─── expenses ───────────────────────────────────────
       if (req.method === "POST" && rest === "expenses") {
-        const token = checkToken(req);
         const body = await req.json();
         const { data: trip } = await supabase.from("trips")
-          .select("id, owner_token, start_date").eq("share_code", shareCode).maybeSingle();
+          .select("id, start_date").eq("share_code", shareCode).maybeSingle();
         if (!trip) return jsonResponse({ error: "找不到这场旅行" }, 404);
-        if (trip.owner_token !== token) return jsonResponse({ error: "无权修改" }, 403);
 
         const { error } = await supabase.from("expenses").insert({
           trip_id: trip.id,
@@ -299,7 +270,6 @@ Deno.serve(async (req) => {
           note: String(body.note || "").slice(0, 80),
           amounts: body.amounts && typeof body.amounts === "object" ? body.amounts : {},
           paid_by: String(body.paidBy || ""),
-          owner_token: token,
         });
         if (error) throw error;
         return jsonResponse(await readTripFull(shareCode));
@@ -308,11 +278,9 @@ Deno.serve(async (req) => {
       const expenseMatch = rest.match(/^expenses\/([0-9a-f-]+)$/);
       if (expenseMatch) {
         const id = expenseMatch[1];
-        const token = checkToken(req);
         const { data: item } = await supabase.from("expenses")
-          .select("owner_token").eq("id", id).maybeSingle();
+          .select("id").eq("id", id).maybeSingle();
         if (!item) return jsonResponse({ error: "找不到这笔账单" }, 404);
-        if (item.owner_token !== token) return jsonResponse({ error: "无权修改" }, 403);
 
         if (req.method === "PUT") {
           const body = await req.json();
@@ -333,14 +301,12 @@ Deno.serve(async (req) => {
 
       // ─── photos ─────────────────────────────────────────
       if (req.method === "POST" && rest === "photos") {
-        const token = checkToken(req);
         const body = await req.json();
         const { path, caption, uploaderName, takenAt } = body;
         if (!path) return jsonResponse({ error: "缺少图片地址" }, 400);
         const { data: trip } = await supabase.from("trips")
-          .select("id, owner_token").eq("share_code", shareCode).maybeSingle();
+          .select("id").eq("share_code", shareCode).maybeSingle();
         if (!trip) return jsonResponse({ error: "找不到这场旅行" }, 404);
-        if (trip.owner_token !== token) return jsonResponse({ error: "无权修改" }, 403);
 
         const { error } = await supabase.from("photos").insert({
           trip_id: trip.id,
@@ -348,7 +314,6 @@ Deno.serve(async (req) => {
           caption: String(caption || "").slice(0, 80),
           uploader_name: String(uploaderName || "旅行者").slice(0, 24),
           taken_at: Number(takenAt) || Date.now(),
-          owner_token: token,
         });
         if (error) throw error;
         return jsonResponse(await readTripFull(shareCode));
@@ -357,11 +322,9 @@ Deno.serve(async (req) => {
       const photoMatch = rest.match(/^photos\/([0-9a-f-]+)$/);
       if (photoMatch && req.method === "DELETE") {
         const id = photoMatch[1];
-        const token = checkToken(req);
         const { data: photo } = await supabase.from("photos")
-          .select("path, owner_token").eq("id", id).maybeSingle();
+          .select("path").eq("id", id).maybeSingle();
         if (!photo) return jsonResponse({ error: "找不到这张照片" }, 404);
-        if (photo.owner_token !== token) return jsonResponse({ error: "无权修改" }, 403);
 
         // 同时删 Storage 里的文件
         try {
