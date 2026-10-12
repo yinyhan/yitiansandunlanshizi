@@ -1,0 +1,96 @@
+<!-- pages/settings/index.wxml -->
+<view class="page {{themeClass}}">
+  <view class="container">
+
+    <view class="page-title">设置</view>
+    <view class="page-subtitle">选择你喜欢的配色方案，切换后立即生效</view>
+
+    <!-- 主题切换卡片 -->
+    <view class="card">
+      <view class="card-title">主题配色</view>
+      <view class="theme-list">
+        <view
+          wx:for="{{themeList}}"
+          wx:key="id"
+          class="theme-item {{currentThemeId === item.id ? 'is-active' : ''}}"
+          bindtap="onSelectTheme"
+          data-id="{{item.id}}"
+        >
+          <!-- 主题预览色块（左右两块展示主色和背景色） -->
+          <view class="theme-preview">
+            <view class="primary" style="background-color: {{item.preview.primary}}"></view>
+            <view class="bg" style="background-color: {{item.preview.bg}}"></view>
+          </view>
+
+          <!-- 主题名 + 描述 -->
+          <view class="theme-meta">
+            <view class="theme-name">
+              {{item.name}}
+              <text wx:if="{{item.recommended}}" class="tag">推荐</text>
+            </view>
+            <view class="theme-desc">{{item.desc}}</view>
+          </view>
+
+          <!-- 选中勾选 -->
+          <view wx:if="{{currentThemeId === item.id}}" class="theme-check">✓</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 预览卡片：实时展示当前主题效果 -->
+    <view class="card">
+      <view class="card-title">当前主题预览</view>
+
+      <view class="preview-block">
+        <text class="preview-block-label">按钮</text>
+        <view class="preview-row">
+          <view class="btn btn-primary">主按钮</view>
+          <view class="btn btn-ghost">次按钮</view>
+          <view class="btn btn-secondary">辅助</view>
+        </view>
+      </view>
+
+      <view class="preview-block">
+        <text class="preview-block-label">标签</text>
+        <view class="preview-row">
+          <view class="tag">标签示例</view>
+          <view class="tag tag-warning">警告</view>
+        </view>
+      </view>
+
+      <view class="preview-block">
+        <text class="preview-block-label">进度条</text>
+        <view class="progress">
+          <view class="progress-bar" style="width: 60%"></view>
+        </view>
+      </view>
+
+      <view class="preview-block">
+        <text class="preview-block-label">Tab 切换</text>
+        <view class="tab-bar">
+          <view class="tab-item active">日</view>
+          <view class="tab-item">周</view>
+          <view class="tab-item">月</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 关于 -->
+    <view class="card">
+      <view class="card-title">关于</view>
+      <view class="card-row">
+        <text class="label">版本</text>
+        <text class="value">v1.0.0</text>
+      </view>
+      <view class="card-row">
+        <text class="label">数据存储</text>
+        <text class="value">本地缓存</text>
+      </view>
+      <view class="card-row">
+        <text class="label">当前主题 ID</text>
+        <text class="value">{{currentThemeId}}</text>
+      </view>
+    </view>
+
+  </view>
+</view>

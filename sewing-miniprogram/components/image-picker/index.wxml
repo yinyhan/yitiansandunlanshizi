@@ -1,0 +1,53 @@
+<!-- components/image-picker/index.wxml
+  模式 1: 多图 (mode="multi" 默认)
+  模式 2: 单图 (mode="single")
+  模式 3: 圆形头像 (mode="avatar")
+  Props: value (multi: ['url1', 'url2'], single/avatar: 'url'), max
+  Event: change (detail: value)
+-->
+<view class="ip {{mode === 'avatar' ? 'ip-avatar' : ''}}">
+  <!-- 多图模式 -->
+  <block wx:if="{{mode === 'multi' || !mode}}">
+    <view class="ip-list">
+      <view
+        wx:for="{{value}}"
+        wx:key="*this"
+        class="ip-item {{item === cover ? 'is-cover' : ''}}"
+        data-index="{{index}}"
+        bindtap="onPreview"
+        bindlongpress="onLongPress"
+      >
+        <image class="ip-img" src="{{item}}" mode="aspectFill" />
+        <view wx:if="{{item === cover}}" class="ip-cover-badge">封面</view>
+        <view class="ip-del" catchtap="onDelete" data-index="{{index}}">×</view>
+      </view>
+      <view wx:if="{{value.length < max}}" class="ip-add" bindtap="onAdd">
+        <view class="ip-add-plus">+</view>
+        <view class="ip-add-text">{{value.length}}/{{max}}</view>
+      </view>
+    </view>
+  </block>
+
+  <!-- 单图模式 -->
+  <block wx:elif="{{mode === 'single'}}">
+    <view wx:if="{{value}}" class="ip-item ip-single" bindtap="onPreviewSingle" bindlongpress="onDeleteSingle">
+      <image class="ip-img" src="{{value}}" mode="aspectFill" />
+      <view class="ip-del" catchtap="onDeleteSingle">×</view>
+    </view>
+    <view wx:else class="ip-add ip-add-single" bindtap="onAdd">
+      <view class="ip-add-plus">+</view>
+      <view class="ip-add-text">上传图片</view>
+    </view>
+  </block>
+
+  <!-- 头像模式 -->
+  <block wx:elif="{{mode === 'avatar'}}">
+    <view wx:if="{{value}}" class="ip-avatar-img" bindtap="onPreviewSingle">
+      <image class="ip-img-circle" src="{{value}}" mode="aspectFill" />
+      <view class="ip-del" catchtap="onDeleteSingle">×</view>
+    </view>
+    <view wx:else class="ip-add ip-add-avatar" bindtap="onAdd">
+      <view class="ip-add-plus">+</view>
+    </view>
+  </block>
+</view>

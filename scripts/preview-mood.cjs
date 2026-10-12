@@ -1,0 +1,25 @@
+const { Resvg } = require('@resvg/resvg-js');
+const fs = require('fs');
+const path = require('path');
+const out = path.join(__dirname, '..', 'analysis', 'mood-preview.png');
+const files = ['tired','grumpy','normal','focus','satisfied','happy','inspired'];
+const cell = 160;
+const gap = 24;
+const W = 7 * cell + 8 * gap;
+const H = cell + 2 * gap + 40;
+const svgs = files.map(f => fs.readFileSync(`sewing-miniprogram/assets/mood/${f}.svg`, 'utf-8'));
+let combined = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}">`;
+combined += `<rect width="100%" height="100%" fill="#f8fbfb"/>`;
+const labels = ['Tired','Grumpy','Normal','Focus','Satisfied','Happy','Inspired'];
+svgs.forEach((s, i) => {
+  const x = gap + i * (cell + gap);
+  const y = gap;
+  combined += `<g transform="translate(${x},${y})">`;
+  combined += s.replace(/<svg[^>]*>/, `<svg width="${cell}" height="${cell}" viewBox="0 0 256 256">`);
+  combined += `</g>`;
+  combined += `<text x="${x + cell/2}" y="${y + cell + 24}" font-family="Arial" font-size="14" fill="#4A5560" text-anchor="middle">${labels[i]}</text>`;
+});
+combined += `</svg>`;
+const png = new Resvg(combined, { fitTo: { mode: 'width', value: W*2 } }).render().asPng();
+fs.writeFileSync(out, png);
+console.log(`preview: ${out} (${png.length} bytes)`);

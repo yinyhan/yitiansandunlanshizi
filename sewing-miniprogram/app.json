@@ -1,0 +1,60 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/fabric/list",
+    "pages/fabric/edit",
+    "pages/pattern/list",
+    "pages/pattern/edit",
+    "pages/product/list",
+    "pages/product/edit",
+    "pages/clock/index",
+    "pages/settings/index"
+  ],
+  "window": {
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#ffffff",
+    "navigationBarTitleText": "缝纫工具",
+    "navigationBarTextStyle": "black",
+    "backgroundColor": "#f8fbfb"
+  },
+  "tabBar": {
+    "color": "#666666",
+    "selectedColor": "#48A9A6",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "white",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "首页",
+        "iconPath": "assets/tabbar/mint/home.png",
+        "selectedIconPath": "assets/tabbar/mint/home-active.png"
+      },
+      {
+        "pagePath": "pages/fabric/list",
+        "text": "布库",
+        "iconPath": "assets/tabbar/mint/fabric.png",
+        "selectedIconPath": "assets/tabbar/mint/fabric-active.png"
+      },
+      {
+        "pagePath": "pages/pattern/list",
+        "text": "纸样",
+        "iconPath": "assets/tabbar/mint/pattern.png",
+        "selectedIconPath": "assets/tabbar/mint/pattern-active.png"
+      },
+      {
+        "pagePath": "pages/product/list",
+        "text": "成品",
+        "iconPath": "assets/tabbar/mint/product.png",
+        "selectedIconPath": "assets/tabbar/mint/product-active.png"
+      },
+      {
+        "pagePath": "pages/clock/index",
+        "text": "打卡",
+        "iconPath": "assets/tabbar/mint/clock.png",
+        "selectedIconPath": "assets/tabbar/mint/clock-active.png"
+      }
+    ]
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}

@@ -1,0 +1,63 @@
+<!-- pages/product/list.wxml -->
+<view class="page {{themeClass}}">
+  <view class="container">
+
+    <!-- 数据统计 -->
+    <view class="card">
+      <view class="card-title">本月成品概览</view>
+      <view class="stat-row">
+        <view class="stat">
+          <view class="stat-value">{{stats.monthCount}}</view>
+          <view class="stat-label">本月件数</view>
+        </view>
+        <view class="stat">
+          <view class="stat-value">{{stats.totalCount}}</view>
+          <view class="stat-label">累计件数</view>
+        </view>
+        <view class="stat">
+          <view class="stat-value">{{stats.totalHours}}</view>
+          <view class="stat-label">总耗时(h)</view>
+        </view>
+      </view>
+    </view>
+
+    <view class="search">
+      <input class="search-input" placeholder="搜索款式 / 订单来源" value="{{keyword}}" bindinput="onSearch" />
+    </view>
+
+    <view wx:if="{{filtered.length === 0}}" class="empty">
+      <view class="empty-icon">👕</view>
+      <view class="empty-text">还没有成品记录</view>
+    </view>
+
+    <view
+      wx:for="{{filtered}}"
+      wx:key="id"
+      class="list-item"
+      bindtap="onOpen"
+      data-id="{{item.id}}"
+    >
+      <view wx:if="{{item.cover || item.images[0]}}" class="list-thumb">
+        <image class="list-thumb-img" src="{{item.cover || item.images[0]}}" mode="aspectFill" />
+      </view>
+      <view wx:else class="list-thumb list-thumb-empty">
+        <text class="list-thumb-icon">👕</text>
+      </view>
+      <view class="left">
+        <view class="item-name">{{item.styleName}}</view>
+        <view class="item-meta">
+          <text class="tag">{{item.status || '已完成'}}</text>
+          <text wx:if="{{item.orderSource}}" class="tag">{{item.orderSource}}</text>
+        </view>
+      </view>
+      <view class="right">
+        <view class="item-value">{{item.qty}} 件</view>
+        <view class="item-sub">{{item.finishedAt}}</view>
+      </view>
+    </view>
+
+    <view class="fab" bindtap="onAdd">
+      <text class="fab-icon">+</text>
+    </view>
+  </view>
+</view>

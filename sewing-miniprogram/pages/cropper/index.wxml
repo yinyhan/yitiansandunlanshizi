@@ -1,0 +1,64 @@
+<!-- pages/cropper/index.wxml
+  原生 Canvas 图片裁剪页
+  功能：
+  - 1:1 / 4:3 / 3:4 / 16:9 比例切换
+  - 90° 旋转
+  - 水平/垂直翻转
+  - 双指缩放
+  - 单指拖动
+  - 重置
+-->
+<view class="cropper {{themeClass}}">
+  <!-- 顶部导航 -->
+  <view class="cropper-nav">
+    <view class="cropper-nav-btn" bindtap="onCancel">取消</view>
+    <view class="cropper-nav-title">裁剪图片</view>
+    <view class="cropper-nav-btn is-primary" bindtap="onConfirm">使用</view>
+  </view>
+
+  <!-- 画布区域 -->
+  <view class="cropper-stage">
+    <canvas
+      type="2d"
+      id="cropperCanvas"
+      class="cropper-canvas"
+      disable-scroll="true"
+      bindtouchstart="onTouchStart"
+      bindtouchmove="onTouchMove"
+      bindtouchend="onTouchEnd"
+    ></canvas>
+    <!-- 暗色遮罩 + 亮色裁剪框 -->
+    <view class="cropper-mask"></view>
+  </view>
+
+  <!-- 比例选择 -->
+  <view class="cropper-ratios">
+    <view
+      wx:for="{{ratios}}"
+      wx:key="*this"
+      class="cropper-ratio {{item === ratio ? 'is-active' : ''}}"
+      data-ratio="{{item}}"
+      bindtap="onRatioChange"
+    >{{item}}</view>
+  </view>
+
+  <!-- 操作按钮 -->
+  <view class="cropper-actions">
+    <view class="cropper-action" bindtap="onRotate">
+      <view class="cropper-action-icon">↻</view>
+      <view class="cropper-action-label">旋转</view>
+    </view>
+    <view class="cropper-action" bindtap="onFlipH">
+      <view class="cropper-action-icon">⇄</view>
+      <view class="cropper-action-label">水平翻转</view>
+    </view>
+    <view class="cropper-action" bindtap="onFlipV">
+      <view class="cropper-action-icon">⇅</view>
+      <view class="cropper-action-label">垂直翻转</view>
+    </view>
+    <view class="cropper-action" bindtap="onReset">
+      <view class="cropper-action-icon">⟲</view>
+      <view class="cropper-action-label">重置</view>
+    </view>
+  </view>
+</view>

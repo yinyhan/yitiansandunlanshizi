@@ -1,0 +1,141 @@
+<!-- pages/clock/index.wxml -->
+<view class="page {{themeClass}}">
+  <view class="container">
+
+    <!-- 月份切换 + 概览 -->
+    <view class="card month-card">
+      <view class="month-nav">
+        <view class="month-arrow" bindtap="onPrevMonth">‹</view>
+        <view class="month-title" bindtap="onToday">{{monthLabel}}</view>
+        <view class="month-arrow" bindtap="onNextMonth">›</view>
+      </view>
+      <view class="month-summary">
+        <text class="summary-num">{{monthTotal}}</text>
+        <text class="summary-unit">天已记录</text>
+        <text class="summary-divider">·</text>
+        <text class="summary-num">{{streakDays}}</text>
+        <text class="summary-unit">天连续</text>
+      </view>
+    </view>
+
+    <!-- 日历 -->
+    <view class="card">
+      <view class="cal-weekrow">
+        <view class="cal-weekday" wx:for="{{weekDays}}" wx:key="*this">{{item}}</view>
+      </view>
+      <view class="cal-grid">
+        <block wx:for="{{calDays}}" wx:key="date">
+          <view
+            class="cal-cell {{item.empty ? 'is-empty' : ''}} {{item.isToday ? 'is-today' : ''}} {{item.date === selectedDate ? 'is-selected' : ''}} {{item.future ? 'is-future' : ''}}"
+            data-date="{{item.date}}"
+            bindtap="onPickDay"
+            bindlongpress="onLongPressDay"
+          >
+            <view wx:if="{{!item.empty}}" class="cal-day">{{item.day}}</view>
+            <image
+              wx:if="{{!item.empty && item.mood}}"
+              class="cal-mood"
+              src="{{item.moodIcon}}"
+              mode="aspectFit"
+            />
+            <view wx:elif="{{!item.empty && !item.future}}" class="cal-add" catchtap="onQuickAdd" data-date="{{item.date}}">+</view>
+          </view>
+        </block>
+      </view>
+    </view>
+
+    <!-- 选中日详情 / 今日提示 -->
+    <view class="card detail-card">
+      <block wx:if="{{detail}}">
+        <view class="detail-head">
+          <image class="detail-mood" src="{{detail.moodIcon}}" mode="aspectFit" />
+          <view class="detail-info">
+            <view class="detail-date">{{detail.dateLabel}}</view>
+            <view class="detail-mood-label" style="color: {{detail.moodColor}};">{{detail.moodLabel}}</view>
+          </view>
+          <view class="detail-edit" bindtap="onEdit">编辑</view>
+        </view>
+        <view wx:if="{{detail.note}}" class="detail-note">"{{detail.note}}"</view>
+        <view wx:if="{{detail.productName}}" class="detail-product">
+          <text class="detail-product-tag">关联成品</text>
+          <text class="detail-product-name">{{detail.productName}}</text>
+        </view>
+        <view class="detail-actions">
+          <view class="btn btn-ghost btn-sm" bindtap="onDeleteDetail">删除记录</view>
+        </view>
+      </block>
+      <block wx:else>
+        <view class="detail-empty">
+          <view class="detail-empty-emoji">🌱</view>
+          <view class="detail-empty-text">{{emptyTip}}</view>
+          <view class="btn btn-primary" bindtap="onQuickAddToday" style="margin-top: 24rpx;">记录今天的心情</view>
+        </view>
+      </block>
+    </view>
+
+    <!-- 本月心情统计 -->
+    <view wx:if="{{monthTotal > 0}}" class="card">
+      <view class="card-title">本月心情</view>
+      <view class="mood-stats">
+        <view
+          wx:for="{{moodStatsList}}"
+          wx:key="key"
+          class="mood-stat {{item.count > 0 ? '' : 'is-zero'}}"
+        >
+          <image class="mood-stat-icon" src="{{item.icon}}" mode="aspectFit" />
+          <view class="mood-stat-name">{{item.label}}</view>
+          <view class="mood-stat-count" style="color: {{item.color}};">{{item.count}}</view>
+        </view>
+      </view>
+    </view>
+
+  </view>
+
+  <!-- 心情选择弹层 -->
+  <!-- 关键：用两层 mask 拆分背景；点 popup 外部空白 = 关闭，点 popup 内部 = 不关 -->
+  <view class="mood-popup-mask" hidden="{{!popup.show}}">
+    <!-- 背景遮罩：占满整屏，点击关闭 -->
+    <view class="mood-popup-bg" bindtap="onClosePopup"></view>
+    <!-- 弹层卡片：catchtap 阻止冒泡到背景 -->
+    <view class="mood-popup" catchtap="onNoop">
+      <view class="mood-popup-title">{{popup.dateLabel}} · 选择心情</view>
+
+      <view class="mood-picker">
+        <view
+          wx:for="{{moods}}"
+          wx:key="key"
+          class="mood-pick {{popup.mood === item.key ? 'is-active' : ''}}"
+          data-key="{{item.key}}"
+          catchtap="onPickMood"
+        >
+          <image class="mood-pick-icon" src="{{item.icon}}" mode="aspectFit" />
+          <view class="mood-pick-label">{{item.label}}</view>
+        </view>
+      </view>
+
+      <!-- textarea 套一层 catchtap 容器，阻止点击穿透关闭 -->
+      <view class="mood-note-wrap" catchtap="onNoop">
+        <textarea
+          class="mood-note"
+          placeholder="今天的一句话（选填，限 80 字）"
+          maxlength="80"
+          value="{{popup.note}}"
+          bindinput="onNoteInput"
+          auto-height
+        />
+      </view>
+
+      <view class="mood-product-row" wx:if="{{productNames.length > 0}}" catchtap="onNoop">
+        <text class="mood-product-label">关联成品</text>
+        <picker mode="selector" range="{{productNames}}" value="{{popup.productIndex}}" bindchange="onProductPick">
+          <view class="mood-product-pick">{{productNames[popup.productIndex] || '点击选择'}}</view>
+        </picker>
+      </view>
+
+      <view class="mood-popup-actions">
+        <view class="btn btn-ghost" bindtap="onClosePopup">取消</view>
+        <view class="btn btn-primary" bindtap="onSaveMood">保存</view>
+      </view>
+    </view>
+  </view>
+</view>

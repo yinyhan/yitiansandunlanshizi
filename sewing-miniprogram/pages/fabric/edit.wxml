@@ -1,0 +1,102 @@
+<!-- pages/fabric/edit.wxml -->
+<view class="page {{themeClass}}">
+  <view class="container">
+    <view class="page-title">{{isEdit ? '编辑' : '新增'}}{{type === 'fabric' ? '面料' : '辅料'}}</view>
+
+    <!-- 图片区 -->
+    <view class="card">
+      <view class="card-title">图片</view>
+      <view class="card-subtitle">最多 9 张，第一张自动设为封面</view>
+      <image-picker
+        value="{{form.images}}"
+        cover="{{form.cover}}"
+        max="9"
+        mode="multi"
+        bind:change="onImagesChange"
+      />
+    </view>
+
+    <block wx:if="{{type === 'fabric'}}">
+      <view class="card">
+        <view class="form-row">
+          <text class="form-label">面料名称 *</text>
+          <input class="form-input" placeholder="例：纯棉府绸" value="{{form.name}}" data-field="name" bindinput="onInput" />
+        </view>
+        <view class="form-row">
+          <text class="form-label">材质</text>
+          <input class="form-input" placeholder="棉/麻/丝/毛/化纤" value="{{form.material}}" data-field="material" bindinput="onInput" />
+        </view>
+        <view class="form-row">
+          <text class="form-label">颜色</text>
+          <input class="form-input" placeholder="例：本白" value="{{form.color}}" data-field="color" bindinput="onInput" />
+        </view>
+        <view class="form-row">
+          <text class="form-label">幅宽 (cm)</text>
+          <input class="form-input" type="digit" placeholder="例：150" value="{{form.width}}" data-field="width" bindinput="onInput" />
+        </view>
+        <view class="form-row">
+          <text class="form-label">剩余长度 (m) *</text>
+          <input class="form-input" type="digit" placeholder="例：12.5" value="{{form.stockLength}}" data-field="stockLength" bindinput="onInput" />
+        </view>
+        <view class="form-row">
+          <text class="form-label">最低库存 (m)</text>
+          <input class="form-input" type="digit" placeholder="低于此值提醒" value="{{form.minStock}}" data-field="minStock" bindinput="onInput" />
+        </view>
+        <view class="form-row">
+          <text class="form-label">单价 (元/m)</text>
+          <input class="form-input" type="digit" placeholder="例：38" value="{{form.unitPrice}}" data-field="unitPrice" bindinput="onInput" />
+        </view>
+        <view class="form-row">
+          <text class="form-label">存放位置</text>
+          <input class="form-input" placeholder="例：A 柜第 2 层" value="{{form.location}}" data-field="location" bindinput="onInput" />
+        </view>
+        <view class="form-row">
+          <text class="form-label">分类</text>
+          <input class="form-input" placeholder="棉布 / 西装料 / 针织料" value="{{form.category}}" data-field="category" bindinput="onInput" />
+        </view>
+        <view class="form-row">
+          <text class="form-label">备注</text>
+          <textarea class="form-textarea" placeholder="备注" value="{{form.remark}}" data-field="remark" bindinput="onInput" />
+        </view>
+      </view>
+    </block>
+
+    <block wx:else>
+      <view class="card">
+        <view class="form-row">
+          <text class="form-label">辅料名称 *</text>
+          <input class="form-input" placeholder="例：5 号尼龙拉链" value="{{form.name}}" data-field="name" bindinput="onInput" />
+        </view>
+        <view class="form-row">
+          <text class="form-label">分类</text>
+          <input class="form-input" placeholder="纽扣 / 拉链 / 缝纫线 / 衬布" value="{{form.category}}" data-field="category" bindinput="onInput" />
+        </view>
+        <view class="form-row">
+          <text class="form-label">规格</text>
+          <input class="form-input" placeholder="例：20cm 黑色" value="{{form.spec}}" data-field="spec" bindinput="onInput" />
+        </view>
+        <view class="form-row">
+          <text class="form-label">剩余数量 *</text>
+          <input class="form-input" type="digit" placeholder="例：200" value="{{form.stock}}" data-field="stock" bindinput="onInput" />
+        </view>
+        <view class="form-row">
+          <text class="form-label">单位</text>
+          <input class="form-input" placeholder="个 / 米 / 卷" value="{{form.unit}}" data-field="unit" bindinput="onInput" />
+        </view>
+        <view class="form-row">
+          <text class="form-label">最低库存</text>
+          <input class="form-input" type="digit" placeholder="低于此值提醒" value="{{form.minStock}}" data-field="minStock" bindinput="onInput" />
+        </view>
+        <view class="form-row">
+          <text class="form-label">备注</text>
+          <textarea class="form-textarea" placeholder="备注" value="{{form.remark}}" data-field="remark" bindinput="onInput" />
+        </view>
+      </view>
+    </block>
+
+    <view class="actions">
+      <view class="btn btn-ghost" bindtap="onDelete" wx:if="{{isEdit}}">删除</view>
+      <view class="btn btn-primary btn-block" bindtap="onSave">保存</view>
+    </view>
+  </view>
+</view>

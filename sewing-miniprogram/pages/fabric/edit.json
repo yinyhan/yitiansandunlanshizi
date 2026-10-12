@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "物料编辑",
+  "usingComponents": {
+    "image-picker": "/components/image-picker/index"
+  }
+}

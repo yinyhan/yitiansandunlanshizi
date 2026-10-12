@@ -1,0 +1,63 @@
+<!-- pages/product/edit.wxml -->
+<view class="page {{themeClass}}">
+  <view class="container">
+    <view class="page-title">{{isEdit ? '编辑成品' : '新增成品'}}</view>
+
+    <!-- 成品图 -->
+    <view class="card">
+      <view class="card-title">成品图</view>
+      <view class="card-subtitle">最多 9 张，第一张自动设为封面</view>
+      <image-picker
+        value="{{form.images}}"
+        cover="{{form.cover}}"
+        max="9"
+        mode="multi"
+        bind:change="onImagesChange"
+      />
+    </view>
+
+    <view class="card">
+      <view class="form-row">
+        <text class="form-label">成品款式 *</text>
+        <input class="form-input" placeholder="例：女士衬衫" value="{{form.styleName}}" data-field="styleName" bindinput="onInput" />
+      </view>
+      <view class="form-row">
+        <text class="form-label">数量 *</text>
+        <input class="form-input" type="number" placeholder="1" value="{{form.qty}}" data-field="qty" bindinput="onInput" />
+      </view>
+      <view class="form-row">
+        <text class="form-label">完成日期</text>
+        <picker mode="date" value="{{form.finishedAt}}" bindchange="onDateChange">
+          <view class="form-picker">{{form.finishedAt || '点击选择日期'}}</view>
+        </picker>
+      </view>
+      <view class="form-row">
+        <text class="form-label">耗时 (h)</text>
+        <input class="form-input" type="digit" placeholder="0" value="{{form.hours}}" data-field="hours" bindinput="onInput" />
+      </view>
+      <view class="form-row">
+        <text class="form-label">订单来源</text>
+        <input class="form-input" placeholder="例：淘宝店铺" value="{{form.orderSource}}" data-field="orderSource" bindinput="onInput" />
+      </view>
+      <view class="form-row">
+        <text class="form-label">完成状态</text>
+        <input class="form-input" placeholder="已完成 / 待交付 / 返修中" value="{{form.status}}" data-field="status" bindinput="onInput" />
+      </view>
+      <view class="form-row">
+        <text class="form-label">使用面料</text>
+        <picker mode="selector" range="{{fabricNames}}" value="{{fabricIndex}}" bindchange="onFabricPick">
+          <view class="form-picker">{{form.fabricName || '点击选择'}}</view>
+        </picker>
+      </view>
+      <view class="form-row">
+        <text class="form-label">备注</text>
+        <textarea class="form-textarea" placeholder="备注" value="{{form.remark}}" data-field="remark" bindinput="onInput" />
+      </view>
+    </view>
+
+    <view class="actions">
+      <view class="btn btn-ghost" bindtap="onDelete" wx:if="{{isEdit}}">删除</view>
+      <view class="btn btn-primary btn-block" bindtap="onSave">保存</view>
+    </view>
+  </view>
+</view>

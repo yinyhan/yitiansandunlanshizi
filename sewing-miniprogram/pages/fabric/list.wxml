@@ -1,0 +1,170 @@
+<!-- pages/fabric/list.wxml -->
+<view class="page {{themeClass}}">
+  <view class="container">
+
+    <!-- 顶部 tab 切换：面料 / 辅料 -->
+    <view class="tab-bar">
+      <view class="tab-item {{subTab === 'fabric' ? 'active' : ''}}" bindtap="switchTab" data-tab="fabric">面料 ({{fabricCount}})</view>
+      <view class="tab-item {{subTab === 'aux' ? 'active' : ''}}" bindtap="switchTab" data-tab="aux">辅料 ({{auxCount}})</view>
+    </view>
+
+    <!-- 搜索 -->
+    <view class="search">
+      <input
+        class="search-input"
+        placeholder="{{subTab === 'fabric' ? '搜索面料名称、材质、颜色' : '搜索辅料名称、规格、分类'}}"
+        value="{{keyword}}"
+        bindinput="onSearch"
+        bindconfirm="onSearch"
+      />
+    </view>
+
+    <!-- 筛选条：默认收起，点击展开分组 -->
+    <view class="filter-toggle" bindtap="onFilterToggle">
+      <view class="filter-toggle-left">
+        <text class="filter-toggle-icon">⚙</text>
+        <text class="filter-toggle-text">筛选</text>
+        <text wx:if="{{!isFilterEmpty}}" class="filter-toggle-count">{{activeFilterCount}}</text>
+      </view>
+      <text class="filter-toggle-arrow {{filterOpen ? 'is-open' : ''}}">▼</text>
+    </view>
+
+    <!-- 筛选面板（展开/收起） -->
+    <view class="filter-panel {{filterOpen ? 'is-open' : ''}}">
+      <!-- 库存状态 -->
+      <view class="filter-group">
+        <view class="filter-group-title">库存状态</view>
+        <view class="filter-group-options">
+          <view class="filter-chip {{filter.stock.indexOf('low') > -1 ? 'is-active' : ''}}"
+                data-group="stock" data-val="low" bindtap="onFilterChip">库存不足</view>
+          <view class="filter-chip {{filter.stock.indexOf('enough') > -1 ? 'is-active' : ''}}"
+                data-group="stock" data-val="enough" bindtap="onFilterChip">充足</view>
+        </view>
+      </view>
+
+      <!-- 材质（仅面料） -->
+      <block wx:if="{{subTab === 'fabric'}}">
+        <view class="filter-group">
+          <view class="filter-group-title">材质</view>
+          <view class="filter-group-options">
+            <view wx:for="{{materialOptions}}" wx:key="*this"
+                  class="filter-chip {{filter.material.indexOf(item) > -1 ? 'is-active' : ''}}"
+                  data-group="material" data-val="{{item}}" bindtap="onFilterChip">{{item}}</view>
+          </view>
+        </view>
+
+        <!-- 面料分类 -->
+        <view class="filter-group">
+          <view class="filter-group-title">分类</view>
+          <view class="filter-group-options">
+            <view wx:for="{{categoryOptions}}" wx:key="*this"
+                  class="filter-chip {{filter.category.indexOf(item) > -1 ? 'is-active' : ''}}"
+                  data-group="category" data-val="{{item}}" bindtap="onFilterChip">{{item}}</view>
+          </view>
+        </view>
+      </block>
+
+      <!-- 辅料分类 -->
+      <block wx:elif="{{subTab === 'aux'}}">
+        <view class="filter-group">
+          <view class="filter-group-title">分类</view>
+          <view class="filter-group-options">
+            <view wx:for="{{auxCategoryOptions}}" wx:key="*this"
+                  class="filter-chip {{filter.category.indexOf(item) > -1 ? 'is-active' : ''}}"
+                  data-group="category" data-val="{{item}}" bindtap="onFilterChip">{{item}}</view>
+          </view>
+        </view>
+      </block>
+
+      <!-- 颜色（面料 + 辅料都用） -->
+      <view class="filter-group">
+        <view class="filter-group-title">颜色</view>
+        <view class="filter-group-options">
+          <view wx:for="{{colorOptions}}" wx:key="*this"
+                class="filter-chip {{filter.color.indexOf(item) > -1 ? 'is-active' : ''}}"
+                data-group="color" data-val="{{item}}" bindtap="onFilterChip">{{item}}</view>
+        </view>
+      </view>
+
+      <!-- 操作按钮 -->
+      <view class="filter-actions">
+        <view class="btn btn-ghost" bindtap="onFilterClear">重置</view>
+        <view class="btn btn-primary" bindtap="onFilterApply" style="flex: 1;">应用筛选</view>
+      </view>
+    </view>
+
+    <!-- 筛选摘要行（仅在有筛选时显示） -->
+    <view wx:if="{{!isFilterEmpty}}" class="filter-summary">
+      <text class="filter-summary-label">已选：</text>
+      <view class="filter-summary-list">
+        <view wx:for="{{activeFilterLabels}}" wx:key="*this"
+              class="filter-summary-chip" data-label="{{item}}" bindtap="onRemoveChip">{{item}} ✕</view>
+      </view>
+      <text class="filter-summary-clear" bindtap="onFilterClear">清空</text>
+    </view>
+
+    <!-- 列表 -->
+    <block wx:if="{{subTab === 'fabric'}}">
+      <view wx:if="{{filteredFabric.length === 0}}" class="empty">
+        <view class="empty-icon">🧵</view>
+        <view class="empty-text">暂无面料，点击右下角新增</view>
+      </view>
+      <view
+        wx:for="{{filteredFabric}}"
+        wx:key="id"
+        class="list-item"
+        bindtap="onEdit"
+        data-id="{{item.id}}"
+      >
+        <view wx:if="{{item.cover || item.images[0]}}" class="list-thumb">
+          <image class="list-thumb-img" src="{{item.cover || item.images[0]}}" mode="aspectFill" />
+        </view>
+        <view class="left">
+          <view class="item-name">{{item.name}}</view>
+          <view class="item-meta">
+            <text class="tag">{{item.material || '材质未填'}}</text>
+            <text class="tag">{{item.color || '颜色未填'}}</text>
+            <text wx:if="{{item.stockLength < item.minStock}}" class="tag tag-warning">库存不足</text>
+          </view>
+        </view>
+        <view class="right">
+          <view class="item-value">{{item.stockLength}}m</view>
+          <view class="item-sub">{{item.location || '位置未填'}}</view>
+        </view>
+      </view>
+    </block>
+
+    <block wx:else>
+      <view wx:if="{{filteredAux.length === 0}}" class="empty">
+        <view class="empty-icon">🔘</view>
+        <view class="empty-text">暂无辅料，点击右下角新增</view>
+      </view>
+      <view
+        wx:for="{{filteredAux}}"
+        wx:key="id"
+        class="list-item"
+        bindtap="onEdit"
+        data-id="{{item.id}}"
+      >
+        <view wx:if="{{item.cover || item.images[0]}}" class="list-thumb">
+          <image class="list-thumb-img" src="{{item.cover || item.images[0]}}" mode="aspectFill" />
+        </view>
+        <view class="left">
+          <view class="item-name">{{item.name}}</view>
+          <view class="item-meta">
+            <text class="tag">{{item.spec || '规格未填'}}</text>
+            <text wx:if="{{item.stock < item.minStock}}" class="tag tag-warning">库存不足</text>
+          </view>
+        </view>
+        <view class="right">
+          <view class="item-value">{{item.stock}}{{item.unit || ''}}</view>
+        </view>
+      </view>
+    </block>
+
+    <!-- 新增按钮 -->
+    <view class="fab" bindtap="onAdd">
+      <text class="fab-icon">+</text>
+    </view>
+  </view>
+</view>

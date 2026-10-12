@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "成品编辑",
+  "usingComponents": {
+    "image-picker": "/components/image-picker/index"
+  }
+}

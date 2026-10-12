@@ -1,0 +1,84 @@
+<!-- pages/index/index.wxml -->
+<view class="page {{themeClass}}">
+  <view class="container">
+
+    <!-- 顶部欢迎 -->
+    <view class="hero card">
+      <view class="hero-title">欢迎回来，缝纫手作人 👋</view>
+      <view class="hero-subtitle">今天是 {{today}}，继续加油 ✂️</view>
+
+      <!-- 今日打卡状态 -->
+      <view class="hero-clock">
+        <view class="hero-clock-left">
+          <view class="hero-clock-label">爱好已持续</view>
+          <view class="hero-clock-value">{{clockStats.todayHours}} 小时</view>
+        </view>
+        <view class="hero-clock-right">
+          <block wx:if="{{!activeClock}}">
+            <view class="btn btn-primary" bindtap="onClockIn">打卡</view>
+          </block>
+          <block wx:else>
+            <view class="btn btn-primary" bindtap="onClockOut">收工</view>
+          </block>
+        </view>
+      </view>
+    </view>
+
+    <!-- 库存预警 -->
+    <view wx:if="{{alertTotal > 0}}" class="alert" bindtap="goFabric">
+      <view class="alert-icon">⚠</view>
+      <view class="alert-text">有 {{alertTotal}} 项物料低于安全库存</view>
+      <view class="alert-arrow">›</view>
+    </view>
+
+    <!-- 4 大模块入口 -->
+    <view class="grid">
+      <view class="grid-item" bindtap="goFabric">
+        <view class="grid-icon" style="background-color: var(--primary-light); color: var(--primary);">🧵</view>
+        <view class="grid-title">布库辅料</view>
+        <view class="grid-desc">{{fabricCount}} 项物料</view>
+      </view>
+      <view class="grid-item" bindtap="goPattern">
+        <view class="grid-icon" style="background-color: var(--primary-light); color: var(--primary);">📐</view>
+        <view class="grid-title">纸样搭配</view>
+        <view class="grid-desc">{{patternCount}} 个纸样</view>
+      </view>
+      <view class="grid-item" bindtap="goProduct">
+        <view class="grid-icon" style="background-color: var(--primary-light); color: var(--primary);">👕</view>
+        <view class="grid-title">成品统计</view>
+        <view class="grid-desc">{{productCount}} 件成品</view>
+      </view>
+      <view class="grid-item" bindtap="goClock">
+        <view class="grid-icon" style="background-color: var(--primary-light); color: var(--primary);">⏰</view>
+        <view class="grid-title">缝纫打卡</view>
+        <view class="grid-desc">本月 {{clockStats.monthHours}} h</view>
+      </view>
+    </view>
+
+    <!-- 数据概览 -->
+    <view class="card">
+      <view class="card-title">本周数据</view>
+      <view class="stat-row">
+        <view class="stat">
+          <view class="stat-value">{{clockStats.weekHours}}</view>
+          <view class="stat-label">本周工时</view>
+        </view>
+        <view class="stat">
+          <view class="stat-value">{{clockStats.totalDays}}</view>
+          <view class="stat-label">累计打卡</view>
+        </view>
+        <view class="stat">
+          <view class="stat-value">{{productCount}}</view>
+          <view class="stat-label">成品件数</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 设置入口 -->
+    <view class="settings-link" bindtap="goSettings">
+      <view>⚙️ 设置（切换主题）</view>
+      <view>›</view>
+    </view>
+
+  </view>
+</view>

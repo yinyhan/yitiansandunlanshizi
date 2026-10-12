@@ -1,0 +1,114 @@
+/* pages/cropper/index.wxss */
+.cropper {
+  min-height: 100vh;
+  background-color: #1a1a1a;
+  color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+.cropper-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 88rpx;
+  padding: 0 var(--space-md);
+  background-color: #1a1a1a;
+  flex-shrink: 0;
+}
+.cropper-nav-btn {
+  font-size: var(--font-base);
+  color: #cccccc;
+  padding: var(--space-xs) var(--space-md);
+  border-radius: var(--radius-pill);
+  background-color: rgba(255, 255, 255, 0.1);
+}
+.cropper-nav-btn.is-primary {
+  background-color: var(--primary);
+  color: var(--on-primary);
+  font-weight: 500;
+}
+.cropper-nav-title {
+  font-size: var(--font-lg);
+  font-weight: 500;
+}
+
+.cropper-stage {
+  flex: 1;
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+}
+
+.cropper-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.cropper-mask {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  /* 暗色四角 */
+  background:
+    linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)) top left / 100% 80rpx no-repeat,
+    linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)) top right / 80rpx 100% no-repeat,
+    linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)) bottom left / 100% 80rpx no-repeat,
+    linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)) bottom right / 80rpx 100% no-repeat;
+}
+
+.cropper-ratios {
+  display: flex;
+  justify-content: space-around;
+  padding: var(--space-md);
+  background-color: #1a1a1a;
+  border-top: 1rpx solid #333;
+  flex-shrink: 0;
+}
+.cropper-ratio {
+  font-size: var(--font-base);
+  color: #999;
+  padding: var(--space-xs) var(--space-md);
+  border-radius: var(--radius-pill);
+  background-color: #2a2a2a;
+  border: 1rpx solid transparent;
+}
+.cropper-ratio.is-active {
+  color: var(--on-primary);
+  background-color: var(--primary);
+  font-weight: 500;
+}
+
+.cropper-actions {
+  display: flex;
+  justify-content: space-around;
+  padding: var(--space-md) 0;
+  padding-bottom: calc(var(--space-md) + env(safe-area-inset-bottom));
+  background-color: #1a1a1a;
+  flex-shrink: 0;
+}
+.cropper-action {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: #ffffff;
+  font-size: var(--font-sm);
+  padding: var(--space-xs) var(--space-md);
+}
+.cropper-action:active {
+  opacity: 0.6;
+}
+.cropper-action-icon {
+  font-size: 56rpx;
+  line-height: 1;
+  margin-bottom: 8rpx;
+  color: #ffffff;
+}
+.cropper-action-label {
+  color: #cccccc;
+}

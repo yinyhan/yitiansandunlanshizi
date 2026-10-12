@@ -1,0 +1,16 @@
+/* pages/product/edit.wxss */
+.page { min-height: 100vh; background-color: var(--bg-page); }
+
+.form-row { display: flex; flex-direction: column; padding: var(--space-md) 0; border-bottom: 1rpx solid var(--border); }
+.form-row:last-child { border-bottom: none; }
+.form-label { font-size: var(--font-sm); color: var(--text-secondary); margin-bottom: var(--space-xs); line-height: var(--lh-tight); }
+.form-input { font-size: var(--font-base); color: var(--text-main); height: 56rpx; line-height: var(--lh-tight); }
+.form-picker {
+  height: 56rpx; line-height: 56rpx;
+  font-size: var(--font-base); color: var(--text-main);
+  padding: 0; box-sizing: border-box;
+}
+.form-textarea { width: 100%; min-height: 120rpx; font-size: var(--font-base); color: var(--text-main); padding: var(--space-xs) 0; box-sizing: border-box; line-height: var(--lh-base); }
+
+.actions { display: flex; gap: var(--space-sm); margin-top: var(--space-lg); }
+.actions .btn-primary { flex: 1; }

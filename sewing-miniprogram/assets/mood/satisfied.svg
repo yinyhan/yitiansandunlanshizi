@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <circle cx="128" cy="128" r="112" fill="#FFD580" stroke="#C09040" stroke-width="4"/>
+  <ellipse cx="72" cy="156" rx="16" ry="10" fill="#FF9090" opacity="0.55"/>
+  <ellipse cx="184" cy="156" rx="16" ry="10" fill="#FF9090" opacity="0.55"/>
+  <!-- 弯月眼 + 圆眼高光（半圆底下加圆点） -->
+  <path d="M60 116 Q86 96 110 116" fill="none" stroke="#6A3A0A" stroke-width="9" stroke-linecap="round"/>
+  <path d="M146 116 Q172 96 196 116" fill="none" stroke="#6A3A0A" stroke-width="9" stroke-linecap="round"/>
+  <circle cx="85" cy="112" r="3" fill="#6A3A0A"/>
+  <circle cx="171" cy="112" r="3" fill="#6A3A0A"/>
+  <path d="M86 152 Q128 206 170 152" fill="none" stroke="#6A3A0A" stroke-width="9" stroke-linecap="round"/>
+  <ellipse cx="128" cy="194" rx="14" ry="7" fill="#FF6B6B" opacity="0.65"/>
+  <g transform="translate(212 56)">
+    <path d="M0 14 L12 26 L28 6" fill="none" stroke="#6A3A0A" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <g transform="translate(34 56)">
+    <path d="M0 0 L4 -10 M12 0 L16 -14 M24 0 L28 -10" stroke="#C09040" stroke-width="3" stroke-linecap="round" fill="none"/>
+  </g>
+</svg>

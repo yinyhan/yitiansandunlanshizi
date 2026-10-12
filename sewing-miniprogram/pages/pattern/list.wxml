@@ -1,0 +1,52 @@
+<!-- pages/pattern/list.wxml -->
+<view class="page {{themeClass}}">
+  <view class="container">
+
+    <view class="search">
+      <input
+        class="search-input"
+        placeholder="搜索纸样名称、款式、标签"
+        value="{{keyword}}"
+        bindinput="onSearch"
+      />
+    </view>
+
+    <view wx:if="{{filtered.length === 0}}" class="empty">
+      <view class="empty-icon">📐</view>
+      <view class="empty-text">还没有纸样，点击右下角新增</view>
+    </view>
+
+    <view
+      wx:for="{{filtered}}"
+      wx:key="id"
+      class="pattern-card"
+      bindtap="onOpen"
+      data-id="{{item.id}}"
+    >
+      <view class="pattern-cover">
+        <image wx:if="{{item.templateImage || item.cutImage}}" class="pattern-cover-img" src="{{item.templateImage || item.cutImage}}" mode="aspectFill" />
+        <text wx:else class="pattern-emoji">📐</text>
+      </view>
+      <view class="pattern-body">
+        <view class="pattern-name">
+          {{item.name}}
+          <text wx:if="{{item.style}}" class="tag">{{item.style}}</text>
+        </view>
+        <view class="pattern-meta">
+          <text wx:if="{{item.size}}">尺寸 {{item.size}}</text>
+          <text wx:if="{{item.difficulty}}"> · 难度 {{item.difficulty}}</text>
+        </view>
+        <view class="pattern-meta">
+          <text class="tag" wx:if="{{item.matches && item.matches.length > 0}}">
+            {{item.matches.length}} 套搭配
+          </text>
+          <text wx:if="{{!item.matches || item.matches.length === 0}}" class="tag tag-warning">未搭配</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="fab" bindtap="onAdd">
+      <text class="fab-icon">+</text>
+    </view>
+  </view>
+</view>

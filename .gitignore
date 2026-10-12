@@ -6,3 +6,11 @@ uploads
 .DS_Store
 *.log
 .env
+
+# 小程序资产备份目录（不要入库）
+sewing-miniprogram/assets/mood_v*/
+sewing-miniprogram/assets/tabbar*
+
+# 实验报告临时产物
+analysis/exp_report*.html
+analysis/exp_report*.xlsx

@@ -1,0 +1,650 @@
+/* ============================================================
+ * app.wxss —— 缝纫工具小程序 全局样式
+ *
+ * 核心：4 套主题通过 CSS 变量切换
+ *   .theme-mint     清爽薄荷
+ *   .theme-indigo   专业靛蓝
+ *   .theme-apricot  暖手作杏色
+ *   .theme-vintage  复古裁缝铺
+ *
+ * 使用方式：
+ *   - 在 app.js 里给 page 根节点动态加 class（utils/theme.js 注入）
+ *   - 任何页面样式都用 var(--primary) 等变量，禁止写死色值
+ * ============================================================ */
+
+/* ---------- 基础变量（每套主题都会重写） ----------
+   ⚠️ 注意：page 是微信内置根选择器，主题 class 必须挂在 page 内的 view 上
+   这里只放「不依赖主题」的基础变量（字号/间距/圆角） */
+page {
+  /* ============ 字号系统（11 档，基础 28rpx） ============ */
+  --font-2xs: 20rpx;      /* 极小字（角标数字、版本号） */
+  --font-xs:  24rpx;      /* 辅助 / hint */
+  --font-sm:  26rpx;      /* 标签、按钮小号、placeholder */
+  --font-base: 28rpx;     /* 基础正文（≈14px，中老年友好） */
+  --font-md:  32rpx;      /* 中号（item-name、按钮） */
+  --font-lg:  36rpx;      /* 标题、卡片标题 */
+  --font-xl:  40rpx;      /* 大标题 */
+  --font-2xl: 56rpx;      /* Hero 数字（统计） */
+  --font-3xl: 80rpx;      /* 巨号（时钟） */
+
+  /* ============ 行高（解决"对不齐"） ============ */
+  --lh-tight: 1.2;        /* 标题、按钮 */
+  --lh-base:  1.5;        /* 正文、表单 */
+  --lh-loose: 1.7;        /* 长文本 */
+  --lh-numeric: 1.0;      /* 纯数字（钟表、统计） */
+
+  /* ============ 字间距（解决"字间距不一致"） ============ */
+  --ls-tight: 0;
+  --ls-base:  0;
+  --ls-wide:  1rpx;       /* 标签、按钮 */
+  --ls-wide2: 2rpx;       /* 大数字 */
+
+  /* ============ 间距（5 档，8rpx 网格） ============ */
+  --space-xs: 8rpx;
+  --space-sm: 16rpx;
+  --space-md: 24rpx;
+  --space-lg: 32rpx;
+  --space-xl: 48rpx;
+
+  /* ============ 圆角（6 档） ============ */
+  --radius-xs: 8rpx;       /* 小型元素（角标、复选框） */
+  --radius-sm: 16rpx;      /* 按钮、输入框 */
+  --radius-md: 24rpx;      /* 卡片、列表项 */
+  --radius-lg: 32rpx;      /* 大型卡片、Hero */
+  --radius-xl: 40rpx;      /* 弹出层 */
+  --radius-pill: 999rpx;   /* 胶囊形（标签、徽章） */
+
+  --tabbar-height: 100rpx;
+
+  font-size: var(--font-base);
+  /* 兜底背景：即使主题变量没生效也不会全白 */
+  background-color: #F8FBFB;
+  color: #2C3E50;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC",
+    "Helvetica Neue", "Microsoft YaHei", sans-serif;
+}
+
+/* ============================================================
+ * 全局行高 / 字间距归一（解决二级页面对不齐）
+ * 任何 view / text 都默认用正文行高；按钮 / 标签 / 数字单独覆盖
+ * ============================================================ */
+view, text, input, textarea, picker {
+  line-height: var(--lh-base);
+  letter-spacing: var(--ls-base);
+  box-sizing: border-box;
+}
+
+/* 主题 class 挂在 .page view 上时，所有子元素都能继承变量 */
+.page {
+  min-height: 100vh;
+  background-color: var(--bg-page, #F8FBFB);
+  color: var(--text-main, #2C3E50);
+  box-sizing: border-box;
+  display: block;
+  width: 100%;
+}
+
+/* ============================================================
+ * 4 套主题：每套主题定义 8 个 CSS 变量
+ *   --primary / --primary-light / --text-main / --text-secondary
+ *   --bg-page / --bg-card / --border / --warning
+ * ============================================================ */
+
+/* 主题 1：清爽薄荷 */
+.theme-mint {
+  --primary: #48A9A6;
+  --primary-light: #DBF2F1;
+  --text-main: #2C3E50;
+  --text-secondary: #667788;
+  --bg-page: #F8FBFB;
+  --bg-card: #FFFFFF;
+  --border: #E2EAEA;
+  --warning: #E67E22;
+  --on-primary: #FFFFFF;        /* 主色之上的前景色（按钮文字、勾选） */
+}
+
+/* 主题 2：专业靛蓝 */
+.theme-indigo {
+  --primary: #365F91;
+  --primary-light: #E4EBF4;
+  --text-main: #222933;
+  --text-secondary: #606B79;
+  --bg-page: #F5F7FA;
+  --bg-card: #FFFFFF;
+  --border: #D8DEE6;
+  --warning: #D9534F;
+  --on-primary: #FFFFFF;
+}
+
+/* 主题 3：暖手作杏色（推荐首选） */
+.theme-apricot {
+  --primary: #C88A65;
+  --primary-light: #F6EAE2;
+  --text-main: #3D3530;
+  --text-secondary: #7A6F68;
+  --bg-page: #FCF8F4;
+  --bg-card: #FFFFFF;
+  --border: #EBE0D7;
+  --warning: #D17040;
+  --on-primary: #FFFFFF;
+}
+
+/* 主题 4：复古裁缝铺 */
+.theme-vintage {
+  --primary: #594B41;
+  --primary-light: #E8E2DD;
+  --text-main: #2E2823;
+  --text-secondary: #70665F;
+  --bg-page: #F3F0ED;
+  --bg-card: #FAF7F4;
+  --border: #DCD5CF;
+  --warning: #A85C32;
+  --on-primary: #FFFFFF;
+}
+
+/* ============================================================
+ * 全局原子样式（全部用 CSS 变量，零硬编码颜色）
+ * ============================================================ */
+
+/* —— 容器 —— */
+.container {
+  min-height: 100vh;
+  padding: var(--space-md);
+  padding-bottom: calc(var(--tabbar-height) + var(--space-xl));
+  box-sizing: border-box;
+  background-color: var(--bg-page);
+}
+
+.page-title {
+  font-size: var(--font-lg);
+  font-weight: 600;
+  color: var(--text-main);
+  margin-bottom: var(--space-md);
+}
+
+.page-subtitle {
+  font-size: var(--font-base);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-md);
+}
+
+/* —— 卡片 —— */
+.card {
+  background-color: var(--bg-card);
+  border-radius: var(--radius-md);
+  border: 1rpx solid var(--border);
+  padding: var(--space-md) var(--space-lg);
+  margin-bottom: var(--space-md);
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+}
+.card.is-hero {
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg) var(--space-lg);
+  box-shadow: 0 6rpx 24rpx rgba(0, 0, 0, 0.06);
+}
+
+.card-title {
+  font-size: var(--font-lg);
+  font-weight: 600;
+  color: var(--text-main);
+  margin-bottom: var(--space-sm);
+}
+
+.card-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-md) 0;            /* 16 → 24，统一种间距 */
+  border-bottom: 1rpx solid var(--border);
+  line-height: var(--lh-tight);          /* 防止基线错位 */
+}
+.card-row:last-child {
+  border-bottom: none;
+}
+.card-row .label {
+  color: var(--text-secondary);
+  font-size: var(--font-base);
+}
+.card-row .value {
+  color: var(--text-main);
+  font-size: var(--font-base);
+  font-weight: 500;
+}
+
+/* —— 按钮 —— */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 88rpx;
+  padding: 0 var(--space-lg);
+  border-radius: var(--radius-pill);
+  font-size: var(--font-base);
+  font-weight: 500;
+  border: none;
+  line-height: 1;                        /* 关键：按钮文字垂直居中不抖 */
+  letter-spacing: var(--ls-wide);        /* 统一字间距 */
+  box-sizing: border-box;
+  /* 防御性：防止文字溢出 */
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: opacity 0.15s ease, transform 0.1s ease;
+}
+.btn:active { opacity: 0.75; transform: scale(0.98); }
+
+.btn-primary {
+  background-color: var(--primary);
+  color: var(--on-primary);
+}
+.btn-primary[disabled] {
+  opacity: 0.5;
+}
+
+.btn-secondary {
+  background-color: var(--primary-light);
+  color: var(--primary);
+}
+
+.btn-ghost {
+  background-color: transparent;
+  color: var(--primary);
+  border: 1rpx solid var(--primary);
+}
+
+.btn-block {
+  width: 100%;
+  display: flex;
+  /* 防止「上班打卡」这种文字在窄屏溢出 */
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 0 var(--space-md);
+}
+
+/* —— 标签 / 角标 —— */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  height: 40rpx;
+  padding: 0 var(--space-sm);
+  border-radius: var(--radius-pill);
+  background-color: var(--primary-light);
+  color: var(--primary);
+  font-size: var(--font-sm);
+  margin-right: var(--space-xs);
+  line-height: 1;                        /* 关键：标签居中不抖 */
+  letter-spacing: var(--ls-wide);
+  white-space: nowrap;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tag-warning {
+  background-color: rgba(217, 83, 79, 0.12);
+  color: var(--warning);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36rpx;
+  height: 36rpx;
+  padding: 0 8rpx;
+  border-radius: var(--radius-pill);
+  background-color: var(--warning);
+  color: var(--on-primary);
+  font-size: var(--font-2xs);
+  line-height: 1;
+  letter-spacing: 0;
+}
+
+/* —— 进度条 —— */
+.progress {
+  position: relative;
+  height: 16rpx;
+  background-color: var(--primary-light);
+  border-radius: 999rpx;
+  overflow: hidden;
+}
+.progress-bar {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  background-color: var(--primary);
+  border-radius: 999rpx;
+  transition: width 0.3s ease;
+}
+
+/* —— Tab 选中态（用于页面内次级 tab） —— */
+.tab-bar {
+  display: flex;
+  background-color: var(--bg-card);
+  border-radius: var(--radius-md);
+  padding: var(--space-xs);
+  margin-bottom: var(--space-md);
+  border: 1rpx solid var(--border);
+}
+.tab-item {
+  flex: 1;
+  text-align: center;
+  height: 64rpx;
+  line-height: 64rpx;        /* 高度 = 行高，确保文字垂直居中 */
+  border-radius: var(--radius-pill);
+  color: var(--text-secondary);
+  font-size: var(--font-base);
+  letter-spacing: var(--ls-wide);
+  transition: all 0.15s ease;
+}
+.tab-item.active {
+  background-color: var(--primary);
+  color: var(--on-primary);
+  font-weight: 500;
+}
+
+/* —— 空态 —— */
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-xl) 0;
+  color: var(--text-secondary);
+}
+.empty-icon {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: var(--radius-pill);
+  background-color: var(--primary-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary);
+  font-size: 60rpx;
+  line-height: 1;
+  margin-bottom: var(--space-md);
+}
+.empty-text {
+  font-size: var(--font-base);
+  line-height: var(--lh-base);
+}
+
+/* —— 列表项 —— */
+.list-item {
+  background-color: var(--bg-card);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+  margin-bottom: var(--space-md);      /* 16 → 24，统一间距 */
+  border: 1rpx solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: opacity 0.1s ease;
+}
+.list-item:active { opacity: 0.7; }
+.list-item .left {
+  flex: 1;
+  color: var(--text-main);
+  min-width: 0;                       /* 防止 flex 子项溢出 */
+}
+.list-item .right {
+  margin-left: var(--space-md);
+  color: var(--text-secondary);
+  font-size: var(--font-sm);
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* —— 分割线 —— */
+.divider {
+  height: 1rpx;
+  background-color: var(--border);
+  margin: var(--space-md) 0;
+}
+
+/* —— 主题切换预览色块（设置页专用） —— */
+.theme-preview {
+  display: flex;
+  height: 88rpx;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 1rpx solid var(--border);
+}
+.theme-preview .primary {
+  flex: 1;
+}
+.theme-preview .bg {
+  flex: 1;
+}
+
+/* ============================================================
+ * 新增组件样式（阶段一：UI 升级 + 图片上传配套）
+ * ============================================================ */
+
+/* —— 表单 —— */
+.form-item {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: var(--space-md);
+}
+.form-label {
+  font-size: var(--font-base);
+  color: var(--text-main);
+  margin-bottom: var(--space-xs);
+  font-weight: 500;
+  line-height: var(--lh-tight);
+}
+.form-input,
+.form-textarea,
+.form-picker {
+  width: 100%;
+  height: 88rpx;
+  padding: 0 var(--space-md);
+  background-color: var(--bg-card);
+  border: 1rpx solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-base);
+  color: var(--text-main);
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  line-height: var(--lh-tight);          /* 输入框行高收紧 */
+}
+.form-textarea {
+  height: 200rpx;
+  padding: var(--space-sm) var(--space-md);
+  align-items: flex-start;
+  line-height: var(--lh-base);
+}
+
+/* —— 按钮尺寸变体 —— */
+.btn-sm {
+  height: 64rpx;
+  font-size: var(--font-sm);
+  padding: 0 var(--space-md);
+}
+.btn-lg {
+  height: 104rpx;
+  font-size: var(--font-md);
+  padding: 0 var(--space-xl);
+  font-weight: 600;
+}
+
+/* —— 浮动按钮（FAB） —— */
+.fab {
+  position: fixed;
+  right: var(--space-lg);
+  bottom: calc(var(--tabbar-height) + var(--space-lg));
+  width: 112rpx;
+  height: 112rpx;
+  border-radius: var(--radius-pill);
+  background-color: var(--primary);
+  color: var(--on-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 56rpx;
+  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.15);
+  z-index: 100;
+}
+.fab:active {
+  transform: scale(0.95);
+  opacity: 0.9;
+}
+
+/* —— 软阴影（卡片悬浮用） —— */
+.shadow-soft {
+  box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.06);
+}
+.shadow-pop {
+  box-shadow: 0 12rpx 40rpx rgba(0, 0, 0, 0.1);
+}
+
+/* —— 头部导航条（页面内自绘，非原生导航） —— */
+.navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 88rpx;
+  padding: 0 var(--space-md);
+  background-color: var(--bg-page);
+  margin-bottom: var(--space-md);
+}
+.navbar-title {
+  font-size: var(--font-lg);
+  font-weight: 600;
+  color: var(--text-main);
+  line-height: var(--lh-tight);
+  flex: 1;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.navbar-left,
+.navbar-right {
+  min-width: 80rpx;
+  display: flex;
+  align-items: center;
+}
+.navbar-btn {
+  font-size: var(--font-base);
+  color: var(--primary);
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-pill);
+  line-height: 1;
+}
+
+/* ============================================================
+ * 通用工具类（解决二级页面「行间距字间距不一致」）
+ * 任何页面都可以用 .text-main / .text-sm / .mb-md 等
+ * ============================================================ */
+.text-main      { color: var(--text-main); }
+.text-secondary { color: var(--text-secondary); }
+.text-primary   { color: var(--primary); }
+.text-warning   { color: var(--warning); }
+
+.fw-500 { font-weight: 500; }
+.fw-600 { font-weight: 600; }
+.fw-700 { font-weight: 700; }
+
+.fs-2xs { font-size: var(--font-2xs); line-height: var(--lh-tight); }
+.fs-xs  { font-size: var(--font-xs);  line-height: var(--lh-tight); }
+.fs-sm  { font-size: var(--font-sm);  line-height: var(--lh-tight); }
+.fs-md  { font-size: var(--font-md);  line-height: var(--lh-tight); }
+.fs-lg  { font-size: var(--font-lg);  line-height: var(--lh-tight); }
+.fs-xl  { font-size: var(--font-xl);  line-height: var(--lh-tight); }
+.fs-2xl { font-size: var(--font-2xl); line-height: var(--lh-numeric); }
+.fs-3xl { font-size: var(--font-3xl); line-height: var(--lh-numeric); letter-spacing: var(--ls-wide2); }
+
+.mt-0  { margin-top: 0; }
+.mt-xs { margin-top: var(--space-xs); }
+.mt-sm { margin-top: var(--space-sm); }
+.mt-md { margin-top: var(--space-md); }
+.mt-lg { margin-top: var(--space-lg); }
+
+.mb-0  { margin-bottom: 0; }
+.mb-xs { margin-bottom: var(--space-xs); }
+.mb-sm { margin-bottom: var(--space-sm); }
+.mb-md { margin-bottom: var(--space-md); }
+.mb-lg { margin-bottom: var(--space-lg); }
+
+.ellipsis {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.py-sm { padding-top: var(--space-sm); padding-bottom: var(--space-sm); }
+.py-md { padding-top: var(--space-md); padding-bottom: var(--space-md); }
+.py-lg { padding-top: var(--space-lg); padding-bottom: var(--space-lg); }
+
+/* —— 搜索框（统一） —— */
+.search {
+  background-color: var(--bg-card);
+  border: 1rpx solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 0 var(--space-md);
+  margin-bottom: var(--space-md);
+  display: flex;
+  align-items: center;
+  height: 72rpx;
+}
+.search-input {
+  flex: 1;
+  height: 72rpx;
+  font-size: var(--font-base);
+  color: var(--text-main);
+  line-height: var(--lh-tight);
+}
+.search-placeholder { color: var(--text-secondary); }
+
+/* —— 筛选 chip（横滚多选） —— */
+.filter-bar {
+  margin-bottom: var(--space-md);
+  white-space: nowrap;
+}
+.filter-chip {
+  display: inline-flex;
+  align-items: center;
+  height: 56rpx;
+  padding: 0 var(--space-md);
+  margin-right: var(--space-sm);
+  border-radius: var(--radius-pill);
+  background-color: var(--bg-card);
+  border: 1rpx solid var(--border);
+  color: var(--text-secondary);
+  font-size: var(--font-sm);
+  line-height: 1;
+  letter-spacing: var(--ls-wide);
+  transition: all 0.15s ease;
+}
+.filter-chip.is-active {
+  background-color: var(--primary);
+  border-color: var(--primary);
+  color: var(--on-primary);
+  font-weight: 500;
+}
+.filter-chip:active { opacity: 0.7; }
+.filter-chip-clear {
+  background-color: var(--primary-light);
+  border-color: var(--primary-light);
+  color: var(--primary);
+  font-weight: 500;
+}
+
+/* —— 列表标题 —— */
+.section-title {
+  font-size: var(--font-base);
+  color: var(--text-secondary);
+  font-weight: 500;
+  margin-bottom: var(--space-sm);
+  line-height: var(--lh-tight);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}

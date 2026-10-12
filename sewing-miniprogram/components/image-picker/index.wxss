@@ -1,0 +1,121 @@
+/* components/image-picker/index.wxss */
+.ip {
+  width: 100%;
+}
+
+.ip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+}
+
+.ip-item {
+  position: relative;
+  width: 200rpx;
+  height: 200rpx;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background-color: var(--bg-page);
+  border: 2rpx solid transparent;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
+  transition: transform 0.1s ease;
+}
+.ip-item.is-cover {
+  border-color: var(--primary);
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.08);
+}
+.ip-item:active {
+  transform: scale(0.96);
+}
+
+.ip-img {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.ip-cover-badge {
+  position: absolute;
+  top: 8rpx;
+  left: 8rpx;
+  background-color: var(--primary);
+  color: var(--on-primary);
+  font-size: 20rpx;
+  padding: 4rpx 12rpx;
+  border-radius: var(--radius-pill);
+  font-weight: 500;
+}
+
+.ip-del {
+  position: absolute;
+  top: 6rpx;
+  right: 6rpx;
+  width: 40rpx;
+  height: 40rpx;
+  background-color: rgba(0, 0, 0, 0.55);
+  color: white;
+  border-radius: var(--radius-pill);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28rpx;
+  line-height: 1;
+  font-weight: 300;
+}
+
+.ip-add {
+  width: 200rpx;
+  height: 200rpx;
+  border-radius: var(--radius-md);
+  border: 2rpx dashed var(--border);
+  background-color: var(--bg-page);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  font-size: var(--font-sm);
+  transition: border-color 0.2s ease;
+}
+.ip-add:active {
+  border-color: var(--primary);
+  background-color: var(--primary-light);
+}
+.ip-add-plus {
+  font-size: 64rpx;
+  font-weight: 200;
+  line-height: 1;
+  margin-bottom: 8rpx;
+  color: var(--text-secondary);
+}
+.ip-add-text {
+  font-size: var(--font-sm);
+}
+
+/* 单图模式：占满卡片宽度 */
+.ip-single, .ip-add-single {
+  width: 100%;
+  height: 400rpx;
+  border-radius: var(--radius-md);
+}
+
+/* 头像模式 */
+.ip-avatar {
+  display: flex;
+  justify-content: center;
+}
+.ip-avatar-img, .ip-add-avatar {
+  width: 200rpx;
+  height: 200rpx;
+  border-radius: 50%;
+  overflow: hidden;
+}
+.ip-img-circle {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+}
+.ip-add-avatar {
+  border: 2rpx dashed var(--border);
+  background-color: var(--primary-light);
+}

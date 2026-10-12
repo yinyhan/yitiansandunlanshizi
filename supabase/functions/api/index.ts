@@ -35,6 +35,20 @@ function jsonResponse(body, status = 200) {
   });
 }
 
+// CORS 包装：把响应外面套上必须的跨域头
+// 注意：当请求带 Authorization 头时，Allow-Origin 不能用 *，必须用反射 origin
+function corsWrap(res: Response, req: Request): Response {
+  const origin = req.headers.get("origin") || "*";
+  const h = new Headers(res.headers);
+  h.set("access-control-allow-origin", origin);
+  h.set("vary", "Origin");
+  h.set("access-control-allow-headers",
+    "Content-Type, Authorization, x-owner-token, apikey, x-client-info, x-supabase-api-version");
+  h.set("access-control-allow-methods", "GET, POST, PUT, DELETE, OPTIONS");
+  h.set("access-control-max-age", "86400");
+  return new Response(res.body, { status: res.status, headers: h });
+}
+
 function normalizeCode(code) {
   return String(code || "").trim().toUpperCase().slice(0, 12);
 }
@@ -105,12 +119,14 @@ async function readTripFull(shareCode) {
 
 Deno.serve(async (req) => {
   // CORS preflight —— 必须在最前面，覆盖任何路由逻辑
-  // 注意：headers 必须包含浏览器实际请求的所有 header（Authorization、apikey 等）
+  // 用反射 origin 避免 Authorization 请求被浏览器拒绝（* + Authorization 不被允许）
   if (req.method === "OPTIONS") {
+    const origin = req.headers.get("origin") || "*";
     return new Response(null, {
       status: 204,
       headers: {
-        "access-control-allow-origin": "*",
+        "access-control-allow-origin": origin,
+        "vary": "Origin",
         "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
         "access-control-allow-headers": "Content-Type, Authorization, x-owner-token, apikey, x-client-info, x-supabase-api-version",
         "access-control-max-age": "86400",
@@ -118,6 +134,19 @@ Deno.serve(async (req) => {
     });
   }
 
+  // 把所有实际响应套上 CORS 头
+  let inner: Response;
+  try {
+    inner = await handle(req);
+  } catch (err) {
+    console.error("[api error]", err);
+    inner = jsonResponse({ error: err.message || "内部错误" }, 500);
+  }
+  return corsWrap(inner, req);
+});
+
+// 路由处理：纯逻辑，不操心 CORS
+async function handle(req: Request): Promise<Response> {
   // req.url 在 Deno Edge 可能是绝对 URL 或相对路径，两种都处理
   let pathname: string;
   try {
@@ -344,4 +373,4 @@ Deno.serve(async (req) => {
     console.error("[api error]", err);
     return jsonResponse({ error: err.message || "内部错误" }, 500);
   }
-});
+}

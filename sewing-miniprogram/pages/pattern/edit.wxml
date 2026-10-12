@@ -1,0 +1,134 @@
+<!-- pages/pattern/edit.wxml -->
+<view class="page {{themeClass}}">
+  <view class="container">
+    <view class="page-title">{{isEdit ? '编辑纸样' : '新增纸样'}}</view>
+
+    <!-- 裁切图（单图）-->
+    <view class="card">
+      <view class="card-title">纸样裁切图</view>
+      <view class="card-subtitle">从布料上裁切下来的纸样实拍图（建议 1:1）</view>
+      <image-picker
+        value="{{form.cutImage}}"
+        mode="single"
+        crop="true"
+        crop-ratio="1:1"
+        max="1"
+        bind:change="onCutImageChange"
+      />
+    </view>
+
+    <!-- 成品模板图（单图）-->
+    <view class="card">
+      <view class="card-title">成品模板图</view>
+      <view class="card-subtitle">按此纸样做出来的成品参考图（建议 4:3）</view>
+      <image-picker
+        value="{{form.templateImage}}"
+        mode="single"
+        crop="true"
+        crop-ratio="4:3"
+        max="1"
+        bind:change="onTemplateImageChange"
+      />
+    </view>
+
+    <view class="card">
+      <view class="form-row">
+        <text class="form-label">纸样名称 *</text>
+        <input class="form-input" placeholder="例：女士衬衫 A 字版" value="{{form.name}}" data-field="name" bindinput="onInput" />
+      </view>
+      <view class="form-row">
+        <text class="form-label">适用款式</text>
+        <input class="form-input" placeholder="上衣 / 裤子 / 裙子 / 童装" value="{{form.style}}" data-field="style" bindinput="onInput" />
+      </view>
+      <view class="form-row">
+        <text class="form-label">尺寸规格</text>
+        <input class="form-input" placeholder="例：S / M / L 或具体尺寸" value="{{form.size}}" data-field="size" bindinput="onInput" />
+      </view>
+      <view class="form-row">
+        <text class="form-label">制作难度</text>
+        <input class="form-input" placeholder="入门 / 中等 / 进阶" value="{{form.difficulty}}" data-field="difficulty" bindinput="onInput" />
+      </view>
+      <view class="form-row">
+        <text class="form-label">标签</text>
+        <input class="form-input" placeholder="用空格分隔，如：通勤 春夏" value="{{tagsText}}" bindinput="onTagsInput" />
+      </view>
+      <view class="form-row">
+        <text class="form-label">备注</text>
+        <textarea class="form-textarea" placeholder="备注" value="{{form.remark}}" data-field="remark" bindinput="onInput" />
+      </view>
+    </view>
+
+    <!-- 搭配方案 -->
+    <view wx:if="{{isEdit}}" class="card">
+      <view class="card-title">面料搭配方案</view>
+
+      <view wx:if="{{!form.matches || form.matches.length === 0}}" class="empty py-lg">
+        <view class="empty-text">还没有搭配方案</view>
+      </view>
+
+      <view wx:for="{{form.matches}}" wx:key="id" class="match-item">
+        <view class="match-name">
+          {{item.name}}
+          <text wx:if="{{item.favorite}}" class="tag">收藏</text>
+        </view>
+        <view class="match-parts">
+          <view wx:for="{{item.parts}}" wx:for-item="p" wx:key="part" class="match-part">
+            <text class="match-part-label">{{p.part}}：</text>
+            <text class="match-part-value">{{fabricMap[p.fabricId] || '（未选）'}}</text>
+          </view>
+        </view>
+        <view wx:if="{{item.remark}}" class="match-remark">备注：{{item.remark}}</view>
+        <view class="match-actions">
+          <view class="btn btn-ghost" data-id="{{item.id}}" bindtap="onToggleFav">{{item.favorite ? '取消收藏' : '收藏'}}</view>
+          <view class="btn btn-ghost" data-id="{{item.id}}" bindtap="onDeleteMatch" style="color: var(--warning); border-color: var(--warning);">删除</view>
+        </view>
+      </view>
+
+      <view class="divider"></view>
+
+      <!-- 新增搭配 -->
+      <view class="card-title" style="font-size: var(--font-base);">新增搭配方案</view>
+      <view class="form-row">
+        <text class="form-label">方案名称</text>
+        <input class="form-input" placeholder="例：春夏通勤" value="{{newMatch.name}}" data-field="name" bindinput="onMatchInput" />
+      </view>
+      <view class="form-row">
+        <text class="form-label">备注</text>
+        <input class="form-input" placeholder="选料理由" value="{{newMatch.remark}}" data-field="remark" bindinput="onMatchInput" />
+      </view>
+
+      <!-- 部位 + 面料选择 -->
+      <view wx:for="{{newMatch.parts}}" wx:key="part" class="part-row">
+        <view class="part-label">
+          <text>{{item.part}}</text>
+          <text class="part-remove" catchtap="onRemovePart" data-part="{{item.part}}">×</text>
+        </view>
+        <picker
+          class="part-picker"
+          mode="selector"
+          range="{{fabricNames}}"
+          value="{{item.fabricIndex}}"
+          bindchange="onFabricPick"
+          data-part="{{item.part}}"
+        >
+          <view class="part-value">
+            {{fabricMap[item.fabricId] || '点击选择面料'}}
+            <text class="part-arrow">›</text>
+          </view>
+        </picker>
+      </view>
+
+      <view class="part-add-row">
+        <input class="form-input" placeholder="自定义部位，如：口袋" value="{{customPart}}" bindinput="onCustomPartInput" />
+        <view class="btn btn-secondary" bindtap="onAddPart">添加部位</view>
+      </view>
+
+      <view class="btn btn-primary btn-block mt-md" bindtap="onSaveMatch">保存搭配方案</view>
+    </view>
+
+    <view class="actions">
+      <view class="btn btn-ghost" bindtap="onDelete" wx:if="{{isEdit}}">删除纸样</view>
+      <view class="btn btn-primary btn-block" bindtap="onSave">保存纸样</view>
+    </view>
+  </view>
+</view>

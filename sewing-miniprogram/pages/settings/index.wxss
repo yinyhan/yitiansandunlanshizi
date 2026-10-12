@@ -1,0 +1,97 @@
+/* pages/settings/index.wxss
+ * 设置页样式
+ * 颜色全部使用 CSS 变量，确保主题切换立即生效 */
+
+.page {
+  min-height: 100vh;
+  background-color: var(--bg-page);
+}
+
+.theme-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.theme-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-md);
+  border: 2rpx solid var(--border);
+  border-radius: var(--radius-md);
+  background-color: var(--bg-card);
+  transition: all 0.2s ease;
+}
+
+.theme-item.is-active {
+  border-color: var(--primary);
+  background-color: var(--primary-light);
+}
+
+.theme-item:active {
+  transform: scale(0.98);
+  opacity: 0.8;
+}
+
+.theme-preview {
+  flex-shrink: 0;
+}
+
+.theme-meta {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.theme-name {
+  font-size: var(--font-md);
+  font-weight: 600;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  line-height: var(--lh-tight);
+}
+
+.theme-desc {
+  font-size: var(--font-sm);
+  color: var(--text-secondary);
+  line-height: var(--lh-tight);
+}
+
+.theme-check {
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: var(--radius-pill);
+  background-color: var(--primary);
+  color: var(--on-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-md);
+  line-height: 1;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.preview-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+}
+.preview-block {
+  margin-bottom: var(--space-lg);          /* 块与块之间 32rpx */
+}
+.preview-block:last-child { margin-bottom: 0; }
+.preview-block-label {
+  display: block;
+  font-size: var(--font-sm);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-sm);           /* 标签与控件 16rpx */
+  line-height: var(--lh-tight);
+  letter-spacing: var(--ls-wide);
+}
