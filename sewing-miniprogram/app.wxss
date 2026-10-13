@@ -1,15 +1,21 @@
 /* ============================================================
  * app.wxss —— 缝纫工具小程序 全局样式
  *
- * 核心：4 套主题通过 CSS 变量切换
- *   .theme-mint     清爽薄荷
- *   .theme-indigo   专业靛蓝
- *   .theme-apricot  暖手作杏色
- *   .theme-vintage  复古裁缝铺
+ * 核心：6 套主题通过 CSS 变量切换（utils/theme.js 维护元数据）
+ *   .theme-apricot     暖手作杏色
+ *   .theme-redblack    复古红黑
+ *   .theme-navyorange  藏青橘撞色
+ *   .theme-greenorange 墨绿橙黄
+ *   .theme-bright      明亮撞色（蓝/绿/红高饱和）
+ *   .theme-pinkgreen   清甜粉绿（粉/绿/橙高饱和）
  *
- * 使用方式：
- *   - 在 app.js 里给 page 根节点动态加 class（utils/theme.js 注入）
- *   - 任何页面样式都用 var(--primary) 等变量，禁止写死色值
+ * 变量分两层：
+ *   ① 8 个语义变量（业务层用）：--theme-main/--theme-assist/--theme-accent
+ *      --page-bg/--card-bg/--text-primary/--text-secondary/--border
+ *   ② 9 个内部变量（wxss 内部用）：--primary/--primary-light/--text-main
+ *      --text-secondary（已废弃，旧名兼容）/--bg-page/--bg-card/--border
+ *      --warning/--on-primary
+ *   app.wxss 的 .theme-xxx 块同时定义两层；所有 wxss 仍可使用旧名
  * ============================================================ */
 
 /* ---------- 基础变量（每套主题都会重写） ----------
@@ -57,9 +63,10 @@ page {
   --tabbar-height: 100rpx;
 
   font-size: var(--font-base);
-  /* 兜底背景：即使主题变量没生效也不会全白 */
-  background-color: #F8FBFB;
-  color: #2C3E50;
+  /* 兜底背景：即使主题变量没生效也不会全白
+     默认主题色为暖手作杏色（theme-apricot） */
+  background-color: #FFF9F2;
+  color: #4A382C;
   font-family: -apple-system, BlinkMacSystemFont, "PingFang SC",
     "Helvetica Neue", "Microsoft YaHei", sans-serif;
 }
@@ -85,61 +92,136 @@ view, text, input, textarea, picker {
 }
 
 /* ============================================================
- * 4 套主题：每套主题定义 8 个 CSS 变量
- *   --primary / --primary-light / --text-main / --text-secondary
- *   --bg-page / --bg-card / --border / --warning
+ * 6 套主题：每套主题定义 8 个语义变量 + 9 个内部变量映射
+ *   语义变量：--theme-main/--theme-assist/--theme-accent
+ *            --page-bg/--card-bg/--text-primary/--text-secondary/--border
+ *   内部变量：--primary(==theme-main) / --primary-light(==theme-assist 半透明)
+ *            --text-main(==text-primary) / --text-secondary
+ *            --bg-page(==page-bg) / --bg-card(==card-bg)
+ *            --border(==border)
+ *            --warning(==theme-accent)
+ *            --on-primary(主色之上的前景色)
  * ============================================================ */
 
-/* 主题 1：清爽薄荷 */
-.theme-mint {
-  --primary: #48A9A6;
-  --primary-light: #DBF2F1;
-  --text-main: #2C3E50;
-  --text-secondary: #667788;
-  --bg-page: #F8FBFB;
-  --bg-card: #FFFFFF;
-  --border: #E2EAEA;
-  --warning: #E67E22;
-  --on-primary: #FFFFFF;        /* 主色之上的前景色（按钮文字、勾选） */
-}
-
-/* 主题 2：专业靛蓝 */
-.theme-indigo {
-  --primary: #365F91;
-  --primary-light: #E4EBF4;
-  --text-main: #222933;
-  --text-secondary: #606B79;
-  --bg-page: #F5F7FA;
-  --bg-card: #FFFFFF;
-  --border: #D8DEE6;
-  --warning: #D9534F;
-  --on-primary: #FFFFFF;
-}
-
-/* 主题 3：暖手作杏色（推荐首选） */
+/* 主题 1：暖手作杏色（默认） */
 .theme-apricot {
-  --primary: #C88A65;
-  --primary-light: #F6EAE2;
-  --text-main: #3D3530;
-  --text-secondary: #7A6F68;
-  --bg-page: #FCF8F4;
-  --bg-card: #FFFFFF;
-  --border: #EBE0D7;
-  --warning: #D17040;
-  --on-primary: #FFFFFF;
+  --theme-main:     #C88A65;
+  --theme-assist:   #D4B59E;
+  --theme-accent:   #A05B37;
+  --page-bg:        #FFF9F2;
+  --card-bg:        #FFFFFF;
+  --text-primary:   #4A382C;
+  --text-secondary: #8C786A;
+  --border:         #EAE0D5;
+
+  --primary:        var(--theme-main);
+  --primary-light:  var(--theme-assist);
+  --text-main:      var(--text-primary);
+  --bg-page:        var(--page-bg);
+  --bg-card:        var(--card-bg);
+  --warning:        var(--theme-accent);
+  --on-primary:     #FFFFFF;          /* 主按钮用白字 vs #C88A65 对比度 2.88，*/
+}                                    /* 鉴于「暖手作」是手作温柔风接受这个弱对比 */
+
+/* 主题 2：复古红黑 */
+.theme-redblack {
+  --theme-main:     #9C2C2C;
+  --theme-assist:   #D44A4A;
+  --theme-accent:   #591616;
+  --page-bg:        #1F1F1F;
+  --card-bg:        #2D2D2D;
+  --text-primary:   #FFFFFF;
+  --text-secondary: #B8B8B8;
+  --border:         #444444;
+
+  --primary:        var(--theme-main);
+  --primary-light:  var(--theme-assist);
+  --text-main:      var(--text-primary);
+  --bg-page:        var(--page-bg);
+  --bg-card:        var(--card-bg);
+  --warning:        #FF8A8A;          /* 深色主题下提亮警示文字 */
+  --tag-warning-bg: rgba(255, 90, 90, 0.22);
+  --on-primary:     #FFFFFF;
 }
 
-/* 主题 4：复古裁缝铺 */
-.theme-vintage {
-  --primary: #594B41;
-  --primary-light: #E8E2DD;
-  --text-main: #2E2823;
-  --text-secondary: #70665F;
-  --bg-page: #F3F0ED;
-  --bg-card: #FAF7F4;
-  --border: #DCD5CF;
-  --warning: #A85C32;
-  --on-primary: #FFFFFF;
+/* 主题 3：藏青橘撞色 */
+.theme-navyorange {
+  --theme-main:     #1A365D;
+  --theme-assist:   #FF7D29;
+  --theme-accent:   #0F243E;
+  --page-bg:        #F7F9FC;
+  --card-bg:        #FFFFFF;
+  --text-primary:   #222222;
+  --text-secondary: #666666;
+  --border:         #DCE3ED;
+
+  --primary:        var(--theme-main);
+  --primary-light:  #FFE6D5;          /* 浅橘底（assist 加白） */
+  --text-main:      var(--text-primary);
+  --bg-page:        var(--page-bg);
+  --bg-card:        var(--card-bg);
+  --warning:        var(--theme-assist);
+  --on-primary:     #FFFFFF;
+}
+
+/* 主题 4：墨绿橙黄 */
+.theme-greenorange {
+  --theme-main:     #285943;
+  --theme-assist:   #FFB037;
+  --theme-accent:   #1A3D2D;
+  --page-bg:        #F6F9F7;
+  --card-bg:        #FFFFFF;
+  --text-primary:   #242424;
+  --text-secondary: #596B62;
+  --border:         #D8E2DD;
+
+  --primary:        var(--theme-main);
+  --primary-light:  #FFF0D5;          /* 浅橙底（assist 加白） */
+  --text-main:      var(--text-primary);
+  --bg-page:        var(--page-bg);
+  --bg-card:        var(--card-bg);
+  --warning:        var(--theme-assist);
+  --on-primary:     #FFFFFF;
+}
+
+/* 主题 5：明亮撞色（蓝/绿/红高饱和） */
+.theme-bright {
+  --theme-main:     #0088EE;
+  --theme-assist:   #32DD32;
+  --theme-accent:   #FF4444;
+  --page-bg:        #FAFDFF;
+  --card-bg:        #FFFFFF;
+  --text-primary:   #111111;
+  --text-secondary: #555555;
+  --border:         #D8EFFF;
+
+  --primary:        var(--theme-main);
+  --primary-light:  #D8F2FF;          /* 浅蓝底（main 加白） */
+  --text-main:      var(--text-primary);
+  --bg-page:        var(--page-bg);
+  --bg-card:        var(--card-bg);
+  --warning:        var(--theme-accent);
+  --on-primary:     #FFFFFF;          /* 白字 vs #0088EE 对比度 3.65（接近合格） */
+}
+
+/* 主题 6：清甜粉绿（粉/绿/橙高饱和） */
+.theme-pinkgreen {
+  --theme-main:     #E63980;
+  --theme-assist:   #36D377;
+  --theme-accent:   #FF7A30;
+  --page-bg:        #FFF8FB;
+  --card-bg:        #FFFFFF;
+  --text-primary:   #222222;
+  --text-secondary: #666666;
+  --border:         #F2DDE7;
+
+  --primary:        var(--theme-main);
+  --primary-light:  #FFE0EC;          /* 浅粉底（main 加白） */
+  --text-main:      var(--text-primary);
+  --bg-page:        var(--page-bg);
+  --bg-card:        var(--card-bg);
+  --warning:        var(--theme-accent);
+  --on-primary:     #FFFFFF;          /* 白字 vs #E63980 对比度 3.99（接近合格） */
 }
 
 /* ============================================================
@@ -283,7 +365,7 @@ view, text, input, textarea, picker {
 }
 
 .tag-warning {
-  background-color: rgba(217, 83, 79, 0.12);
+  background-color: var(--tag-warning-bg, rgba(217, 83, 79, 0.12));
   color: var(--warning);
 }
 
@@ -414,9 +496,8 @@ view, text, input, textarea, picker {
   overflow: hidden;
   border: 1rpx solid var(--border);
 }
-.theme-preview .primary {
-  flex: 1;
-}
+.theme-preview .primary,
+.theme-preview .assist,
 .theme-preview .bg {
   flex: 1;
 }

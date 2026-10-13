@@ -12,15 +12,15 @@
   ],
   "window": {
     "backgroundTextStyle": "light",
-    "navigationBarBackgroundColor": "#ffffff",
+    "navigationBarBackgroundColor": "#C88A65",
     "navigationBarTitleText": "缝纫工具",
-    "navigationBarTextStyle": "black",
-    "backgroundColor": "#f8fbfb"
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#FFF9F2"
   },
   "tabBar": {
-    "color": "#666666",
-    "selectedColor": "#48A9A6",
-    "backgroundColor": "#ffffff",
+    "color": "#8C786A",
+    "selectedColor": "#C88A65",
+    "backgroundColor": "#FFFFFF",
     "borderStyle": "white",
     "list": [
       {

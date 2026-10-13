@@ -16,9 +16,10 @@
           bindtap="onSelectTheme"
           data-id="{{item.id}}"
         >
-          <!-- 主题预览色块（左右两块展示主色和背景色） -->
+          <!-- 主题预览色块：3 段（主色 + 辅助 + 背景） -->
           <view class="theme-preview">
             <view class="primary" style="background-color: {{item.preview.primary}}"></view>
+            <view class="assist" style="background-color: {{item.preview.assist}}"></view>
             <view class="bg" style="background-color: {{item.preview.bg}}"></view>
           </view>
 

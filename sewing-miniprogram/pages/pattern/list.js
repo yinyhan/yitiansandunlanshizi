@@ -4,7 +4,7 @@ const patternSvc = require('../../services/pattern.js');
 
 Page({
   data: {
-    themeClass: 'theme-mint',
+    themeClass: 'theme-apricot',
     keyword: '',
     list: [],
     filtered: []

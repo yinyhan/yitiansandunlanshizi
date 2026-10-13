@@ -8,7 +8,7 @@ const clockSvc = require('../../services/clock.js');
 
 Page({
   data: {
-    themeClass: 'theme-mint',
+    themeClass: 'theme-apricot',
     today: '',
     fabricCount: 0,
     patternCount: 0,

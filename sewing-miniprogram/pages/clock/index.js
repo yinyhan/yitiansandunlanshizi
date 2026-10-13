@@ -71,7 +71,7 @@ function calcStreak(todayKey, moodMap) {
 
 Page({
   data: {
-    themeClass: 'theme-mint',
+    themeClass: 'theme-apricot',
     weekDays: WEEK_DAYS,
 
     // 月历

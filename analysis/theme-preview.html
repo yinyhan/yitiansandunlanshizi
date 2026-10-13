@@ -1,0 +1,171 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+body { background: #fafafa; font-family: -apple-system, sans-serif; padding: 24px; margin: 0; }
+h1 { font-size: 24px; margin-bottom: 24px; }
+.grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; max-width: 1200px; }
+.card { border: 1px solid #ddd; border-radius: 12px; overflow: hidden; }
+.head { padding: 16px 20px; border-bottom: 1px solid rgba(0,0,0,0.1); }
+.head h2 { margin: 0 0 4px; font-size: 18px; }
+.head p { margin: 0; font-size: 13px; opacity: 0.6; }
+.body { padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+.swatch-row { display: flex; gap: 12px; align-items: center; }
+.swatch { display: flex; align-items: center; justify-content: center; width: 96px; height: 64px; border-radius: 8px; font-size: 11px; font-family: monospace; }
+.demo { border-radius: 8px; padding: 16px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.btn { display: inline-block; padding: 8px 16px; border-radius: 999px; font-size: 14px; border: none; cursor: pointer; }
+.tag { display: inline-block; padding: 4px 10px; border-radius: 999px; font-size: 12px; }
+.stat-num { font-size: 32px; font-weight: 700; line-height: 1; }
+</style></head><body>
+<h1>6 套主题预览 · 微信小程序</h1>
+<div class="grid">
+<div class="card">
+    <div class="head" style="background:#FFF9F2; color:#4A382C;">
+      <h2>暖手作杏色</h2>
+      <p>theme-apricot</p>
+    </div>
+    <div class="body" style="background:#FFF9F2; color:#4A382C;">
+      <div class="swatch-row">
+        <div class="swatch" style="background:#C88A65; color:#fff;">#C88A65</div>
+        <div class="swatch" style="background:#D4B59E; color:#4A382C;">#D4B59E</div>
+        <div class="swatch" style="background:#A05B37; color:#fff;">#A05B37</div>
+        <div class="swatch" style="background:#FFF9F2; border:1px solid #EAE0D5; color:#4A382C;">#FFF9F2</div>
+        <div class="swatch" style="background:#FFFFFF; border:1px solid #EAE0D5; color:#4A382C;">#FFFFFF</div>
+        <div class="swatch" style="background:#EAE0D5; color:#4A382C;">#EAE0D5</div>
+      </div>
+      <div class="demo" style="background:#FFFFFF; border:1px solid #EAE0D5;">
+        <button class="btn" style="background:#C88A65; color:#fff;">主按钮</button>
+        <button class="btn" style="background:transparent; color:#C88A65; border:1px solid #C88A65;">次按钮</button>
+        <span class="tag" style="background:#D4B59E; color:#4A382C;">标签</span>
+        <span class="tag" style="background:rgba(217,83,79,0.12); color:#A05B37;">警告</span>
+        <span class="stat-num" style="color:#C88A65;">42</span>
+      </div>
+      <div style="font-size:12px; color:#8C786A;">
+        主文 4A382C · 副本 8C786A · 边框 EAE0D5
+      </div>
+    </div>
+  </div><div class="card">
+    <div class="head" style="background:#1F1F1F; color:#FFFFFF;">
+      <h2>复古红黑</h2>
+      <p>theme-redblack</p>
+    </div>
+    <div class="body" style="background:#1F1F1F; color:#FFFFFF;">
+      <div class="swatch-row">
+        <div class="swatch" style="background:#9C2C2C; color:#fff;">#9C2C2C</div>
+        <div class="swatch" style="background:#D44A4A; color:#FFFFFF;">#D44A4A</div>
+        <div class="swatch" style="background:#591616; color:#fff;">#591616</div>
+        <div class="swatch" style="background:#1F1F1F; border:1px solid #444444; color:#FFFFFF;">#1F1F1F</div>
+        <div class="swatch" style="background:#2D2D2D; border:1px solid #444444; color:#FFFFFF;">#2D2D2D</div>
+        <div class="swatch" style="background:#444444; color:#FFFFFF;">#444444</div>
+      </div>
+      <div class="demo" style="background:#2D2D2D; border:1px solid #444444;">
+        <button class="btn" style="background:#9C2C2C; color:#fff;">主按钮</button>
+        <button class="btn" style="background:transparent; color:#9C2C2C; border:1px solid #9C2C2C;">次按钮</button>
+        <span class="tag" style="background:#D44A4A; color:#FFFFFF;">标签</span>
+        <span class="tag" style="background:rgba(217,83,79,0.12); color:#591616;">警告</span>
+        <span class="stat-num" style="color:#9C2C2C;">42</span>
+      </div>
+      <div style="font-size:12px; color:#B8B8B8;">
+        主文 4A382C · 副本 8C786A · 边框 EAE0D5
+      </div>
+    </div>
+  </div><div class="card">
+    <div class="head" style="background:#F7F9FC; color:#222222;">
+      <h2>藏青橘撞色</h2>
+      <p>theme-navyorange</p>
+    </div>
+    <div class="body" style="background:#F7F9FC; color:#222222;">
+      <div class="swatch-row">
+        <div class="swatch" style="background:#1A365D; color:#fff;">#1A365D</div>
+        <div class="swatch" style="background:#FF7D29; color:#222222;">#FF7D29</div>
+        <div class="swatch" style="background:#0F243E; color:#fff;">#0F243E</div>
+        <div class="swatch" style="background:#F7F9FC; border:1px solid #DCE3ED; color:#222222;">#F7F9FC</div>
+        <div class="swatch" style="background:#FFFFFF; border:1px solid #DCE3ED; color:#222222;">#FFFFFF</div>
+        <div class="swatch" style="background:#DCE3ED; color:#222222;">#DCE3ED</div>
+      </div>
+      <div class="demo" style="background:#FFFFFF; border:1px solid #DCE3ED;">
+        <button class="btn" style="background:#1A365D; color:#fff;">主按钮</button>
+        <button class="btn" style="background:transparent; color:#1A365D; border:1px solid #1A365D;">次按钮</button>
+        <span class="tag" style="background:#FF7D29; color:#222222;">标签</span>
+        <span class="tag" style="background:rgba(217,83,79,0.12); color:#0F243E;">警告</span>
+        <span class="stat-num" style="color:#1A365D;">42</span>
+      </div>
+      <div style="font-size:12px; color:#666666;">
+        主文 4A382C · 副本 8C786A · 边框 EAE0D5
+      </div>
+    </div>
+  </div><div class="card">
+    <div class="head" style="background:#F6F9F7; color:#242424;">
+      <h2>墨绿橙黄</h2>
+      <p>theme-greenorange</p>
+    </div>
+    <div class="body" style="background:#F6F9F7; color:#242424;">
+      <div class="swatch-row">
+        <div class="swatch" style="background:#285943; color:#fff;">#285943</div>
+        <div class="swatch" style="background:#FFB037; color:#242424;">#FFB037</div>
+        <div class="swatch" style="background:#1A3D2D; color:#fff;">#1A3D2D</div>
+        <div class="swatch" style="background:#F6F9F7; border:1px solid #D8E2DD; color:#242424;">#F6F9F7</div>
+        <div class="swatch" style="background:#FFFFFF; border:1px solid #D8E2DD; color:#242424;">#FFFFFF</div>
+        <div class="swatch" style="background:#D8E2DD; color:#242424;">#D8E2DD</div>
+      </div>
+      <div class="demo" style="background:#FFFFFF; border:1px solid #D8E2DD;">
+        <button class="btn" style="background:#285943; color:#fff;">主按钮</button>
+        <button class="btn" style="background:transparent; color:#285943; border:1px solid #285943;">次按钮</button>
+        <span class="tag" style="background:#FFB037; color:#242424;">标签</span>
+        <span class="tag" style="background:rgba(217,83,79,0.12); color:#1A3D2D;">警告</span>
+        <span class="stat-num" style="color:#285943;">42</span>
+      </div>
+      <div style="font-size:12px; color:#596B62;">
+        主文 4A382C · 副本 8C786A · 边框 EAE0D5
+      </div>
+    </div>
+  </div><div class="card">
+    <div class="head" style="background:#FAFDFF; color:#111111;">
+      <h2>明亮撞色</h2>
+      <p>theme-bright</p>
+    </div>
+    <div class="body" style="background:#FAFDFF; color:#111111;">
+      <div class="swatch-row">
+        <div class="swatch" style="background:#0088EE; color:#fff;">#0088EE</div>
+        <div class="swatch" style="background:#32DD32; color:#111111;">#32DD32</div>
+        <div class="swatch" style="background:#FF4444; color:#fff;">#FF4444</div>
+        <div class="swatch" style="background:#FAFDFF; border:1px solid #D8EFFF; color:#111111;">#FAFDFF</div>
+        <div class="swatch" style="background:#FFFFFF; border:1px solid #D8EFFF; color:#111111;">#FFFFFF</div>
+        <div class="swatch" style="background:#D8EFFF; color:#111111;">#D8EFFF</div>
+      </div>
+      <div class="demo" style="background:#FFFFFF; border:1px solid #D8EFFF;">
+        <button class="btn" style="background:#0088EE; color:#fff;">主按钮</button>
+        <button class="btn" style="background:transparent; color:#0088EE; border:1px solid #0088EE;">次按钮</button>
+        <span class="tag" style="background:#32DD32; color:#111111;">标签</span>
+        <span class="tag" style="background:rgba(217,83,79,0.12); color:#FF4444;">警告</span>
+        <span class="stat-num" style="color:#0088EE;">42</span>
+      </div>
+      <div style="font-size:12px; color:#555555;">
+        主文 4A382C · 副本 8C786A · 边框 EAE0D5
+      </div>
+    </div>
+  </div><div class="card">
+    <div class="head" style="background:#FFF8FB; color:#222222;">
+      <h2>清甜粉绿</h2>
+      <p>theme-pinkgreen</p>
+    </div>
+    <div class="body" style="background:#FFF8FB; color:#222222;">
+      <div class="swatch-row">
+        <div class="swatch" style="background:#E63980; color:#fff;">#E63980</div>
+        <div class="swatch" style="background:#36D377; color:#222222;">#36D377</div>
+        <div class="swatch" style="background:#FF7A30; color:#fff;">#FF7A30</div>
+        <div class="swatch" style="background:#FFF8FB; border:1px solid #F2DDE7; color:#222222;">#FFF8FB</div>
+        <div class="swatch" style="background:#FFFFFF; border:1px solid #F2DDE7; color:#222222;">#FFFFFF</div>
+        <div class="swatch" style="background:#F2DDE7; color:#222222;">#F2DDE7</div>
+      </div>
+      <div class="demo" style="background:#FFFFFF; border:1px solid #F2DDE7;">
+        <button class="btn" style="background:#E63980; color:#fff;">主按钮</button>
+        <button class="btn" style="background:transparent; color:#E63980; border:1px solid #E63980;">次按钮</button>
+        <span class="tag" style="background:#36D377; color:#222222;">标签</span>
+        <span class="tag" style="background:rgba(217,83,79,0.12); color:#FF7A30;">警告</span>
+        <span class="stat-num" style="color:#E63980;">42</span>
+      </div>
+      <div style="font-size:12px; color:#666666;">
+        主文 4A382C · 副本 8C786A · 边框 EAE0D5
+      </div>
+    </div>
+  </div>
+</div>
+</body></html>

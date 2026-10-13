@@ -6,7 +6,7 @@ const { today: todayFn } = require('../../utils/date.js');
 
 Page({
   data: {
-    themeClass: 'theme-mint',
+    themeClass: 'theme-apricot',
     isEdit: false,
     form: { status: '已完成' },
     fabricList: [],

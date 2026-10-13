@@ -8,13 +8,15 @@
 //   5. 同时通过 wx.setTabBarStyle 动态更新原生 tabBar 选中色
 const { getThemeClass, getThemes, THEMES } = require('./utils/theme.js');
 
-// 主题 ID -> tabBar 选中色（与 app.wxss 中 4 套主题 --primary 一致）
-const THEME_TAB_COLOR = {
-  'theme-mint':    '#48A9A6',
-  'theme-indigo':  '#365F91',
-  'theme-apricot': '#C88A65',
-  'theme-vintage': '#594B41'
-};
+// 主题 ID -> tabBar 选中色（与 app.wxss 中 6 套主题 --theme-main 一致）
+// 复用 utils/theme.js 的 palette.theme-main，避免重复维护
+const THEME_TAB_COLOR = (() => {
+  const map = {};
+  THEMES.forEach((t) => {
+    map[t.id] = t.palette['theme-main'];
+  });
+  return map;
+})();
 
 // tabBar 5 个标签的固定顺序
 const TAB_KEYS = ['home', 'fabric', 'pattern', 'product', 'clock'];
@@ -27,20 +29,24 @@ const TAB_PAGES = [
   'pages/clock/index'
 ];
 
+// tabBar 图标固定使用 mint 主题（资源限制：未为每套主题出图标）
+const TABBAR_ICON_THEME = 'mint';
+
 App({
   /**
    * 全局数据
-   * themeClass: 当前主题对应的 page-level class（如 theme-mint / theme-indigo 等）
-   * themeList : 4 套主题的元数据，供设置页渲染
+   * themeClass: 当前主题对应的 page-level class（如 theme-apricot / theme-redblack 等）
+   * themeList : 6 套主题的元数据，供设置页渲染
    */
   globalData: {
-    themeClass: 'theme-mint',
+    themeClass: 'theme-apricot',
     themeList: getThemes(),
-    systemInfo: null
+    systemInfo: null,
+    _iconsInited: false
   },
 
   onLaunch() {
-    // 1. 读取上次选择的主题（默认清爽薄荷）
+    // 1. 读取上次选择的主题（默认暖手作杏色）
     const themeClass = getThemeClass();
     this.globalData.themeClass = themeClass;
 
@@ -77,7 +83,7 @@ App({
       }
     });
 
-    // 2. 同步原生 tabBar 选中色 + 替换 5 个图标
+    // 2. 同步原生 tabBar 选中色
     this.applyTabBarTheme(themeClass);
   },
 
@@ -95,26 +101,39 @@ App({
   },
 
   /**
-   * 把当前主题的 --primary 应用到原生 tabBar 的 selectedColor
+   * 把当前主题的 --theme-main 应用到原生 tabBar 的 selectedColor
+   * tabBar 图标固定使用 mint 主题的图标（资源限制）
    * 必须在 tabBar 页面栈内调用，否则会失败
    */
   applyTabBarTheme(themeClass) {
-    const color = THEME_TAB_COLOR[themeClass] || THEME_TAB_COLOR['theme-mint'];
+    const color = THEME_TAB_COLOR[themeClass] || THEME_TAB_COLOR['theme-apricot'];
+    const isDark = themeClass === 'theme-redblack';
     try {
-      // 1. 改选中色
+      // 1. 改 tabBar 选中色 + 背景
+      const bgColor = isDark ? '#1F1F1F' : '#FFFFFF';
+      const borderStyle = isDark ? 'black' : 'white';
       wx.setTabBarStyle({
         selectedColor: color,
-        backgroundColor: '#ffffff',
-        borderStyle: 'white'
+        backgroundColor: bgColor,
+        borderStyle: borderStyle
       });
-      // 2. 替换 5 个 tabBar 图标为当前主题对应的图标
-      const themeKey = themeClass.replace('theme-', '');
-      TAB_KEYS.forEach((key, idx) => {
-        wx.setTabBarItem({
-          index: idx,
-          iconPath: `assets/tabbar/${themeKey}/${key}.png`,
-          selectedIconPath: `assets/tabbar/${themeKey}/${key}-active.png`
+      // 2. 首次启动才重设 5 个 tabBar 图标为 mint（资源限制）
+      //    后续切换只改颜色，避免重设图标导致的视觉闪烁
+      if (!this.globalData._iconsInited) {
+        TAB_KEYS.forEach((key, idx) => {
+          wx.setTabBarItem({
+            index: idx,
+            iconPath: `assets/tabbar/${TABBAR_ICON_THEME}/${key}.png`,
+            selectedIconPath: `assets/tabbar/${TABBAR_ICON_THEME}/${key}-active.png`
+          });
         });
+        this.globalData._iconsInited = true;
+      }
+      // 3. 同步原生 navigationBar 颜色到主题主色（亮色主题用主色底 + 白字）
+      wx.setNavigationBarColor({
+        frontColor: '#ffffff',
+        backgroundColor: color,
+        animation: { duration: 200, timingFunc: 'easeIn' }
       });
     } catch (e) {
       // 在非 tabBar 页面或启动早期调用会失败，忽略即可

@@ -9,9 +9,9 @@ const { getThemeClass, getThemes, setTheme } = require('../../utils/theme.js');
 
 Page({
   data: {
-    themeClass: 'theme-mint',
+    themeClass: 'theme-apricot',
     themeList: getThemes(),
-    currentThemeId: 'theme-mint'
+    currentThemeId: 'theme-apricot'
   },
 
   onLoad() {

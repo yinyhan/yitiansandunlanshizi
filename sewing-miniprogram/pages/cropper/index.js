@@ -17,7 +17,7 @@ const RATIO_MAP = {
 
 Page({
   data: {
-    themeClass: 'theme-mint',
+    themeClass: 'theme-apricot',
     src: '',
     ratio: '1:1',
     ratios: ['1:1', '4:3', '3:4', '16:9']

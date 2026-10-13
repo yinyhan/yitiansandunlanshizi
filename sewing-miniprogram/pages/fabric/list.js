@@ -12,7 +12,7 @@ const {
 
 Page({
   data: {
-    themeClass: 'theme-mint',
+    themeClass: 'theme-apricot',
     subTab: 'fabric',          // 'fabric' | 'aux'
     keyword: '',
     fabricList: [],

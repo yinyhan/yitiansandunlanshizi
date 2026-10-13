@@ -37,6 +37,7 @@
 
 .theme-preview {
   flex-shrink: 0;
+  width: 144rpx;
 }
 
 .theme-meta {

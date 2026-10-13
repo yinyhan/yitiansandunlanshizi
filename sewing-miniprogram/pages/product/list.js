@@ -5,7 +5,7 @@ const { today: todayFn, pad } = require('../../utils/date.js');
 
 Page({
   data: {
-    themeClass: 'theme-mint',
+    themeClass: 'theme-apricot',
     keyword: '',
     list: [],
     filtered: [],

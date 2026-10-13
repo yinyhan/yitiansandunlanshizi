@@ -4,7 +4,7 @@ const fabricSvc = require('../../services/fabric.js');
 
 Page({
   data: {
-    themeClass: 'theme-mint',
+    themeClass: 'theme-apricot',
     type: 'fabric',
     isEdit: false,
     form: {}
